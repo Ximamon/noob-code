@@ -165,24 +165,24 @@ int alinear_size(int size) {
 }
 
 bool asignar_proceso(Memoria *m, Proceso p, TipoAlgo tipo_algo) {
-    // Calculamos el tamaño real alineado
+    // Paso 1 -> Calculamos el tamaño real alineado
     int tam_real = alinear_size(p.mem_requerida);
 
     // [Opcional] Debug para ver el cambio
     if (tam_real != p.mem_requerida)
         printf("[DEBUG Alineacion] Proceso %s pide %d pero ocupara %d\n", p.nombre, p.mem_requerida, tam_real);
     
-    // Buscamos un hueco adecuado con el tamaño real y el algoritmo indicado
+    // Paso 2 -> Buscamos un hueco adecuado con el tamaño real y el algoritmo indicado
     int pos_mem = buscar_hueco(m, tam_real, tipo_algo);
 
     // Si no se encontró hueco, devolvemos false
     if (pos_mem == -1)
         return false;
     
-    // Actualizamos el requerimiento de memoria del proceso al tamaño real
+    // Paso 3 -> Actualizamos el requerimiento de memoria del proceso al tamaño real
     p.mem_requerida = tam_real;
     
-    // Intentamos ocupar el hueco encontrado
+    // Paso 4 -> Intentamos ocupar el hueco encontrado
     return ocupar_memoria(m, pos_mem, p);
 }
 
@@ -230,7 +230,9 @@ void avanzar_tiempo(Memoria *m, Proceso procesos[], int num_procesos, int *reloj
         }
     }
 
+    // Paso 4 -> Guardar estado en log
     guardar_estado(ruta_log, m, *reloj_actual);
 
+    // Paso 5 -> Incrementamos el reloj
     (*reloj_actual)++;
 }

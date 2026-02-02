@@ -1,0 +1,439 @@
+\documentclass[11pt,a4paper]{article}
+
+% ============================================================
+% PAQUETES BÁSICOS
+% ============================================================
+\usepackage{fontspec}
+\setmainfont{Myriad Pro}    % Fuente principal
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{amsmath}        % Para ecuaciones matemáticas
+\usepackage{float}          % Para mejor control de posición de figuras
+\usepackage{caption}        % Para personalizar captions
+\usepackage{subcaption}     % Para subfiguras si se necesitan
+\usepackage{microtype}      % Mejora el espaciado y reduce overfull
+\usepackage{eso-pic}        % Paquete clave para añadir imágenes de fondo
+% Paquetes recomendados para tablas
+\usepackage{placeins}       % \FloatBarrier para controlar floats
+\usepackage{booktabs}       % Reglas profesionales (\toprule, \midrule, \bottomrule)
+\usepackage{tabularx}       % Columnas X que ajustan al ancho
+\usepackage{array}          % Control avanzado de columnas
+\newcolumntype{L}{>{\raggedright\arraybackslash}X} % Columna X alineada a la izquierda
+
+
+% ============================================================
+% CONFIGURACIONES BÁSICAS
+% ============================================================
+
+% Configuración de márgenes
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2cm,
+    right=2cm,
+    headheight=14.5pt
+}
+
+% Configuración de enlaces
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={Memoria Práctica},
+    pdfpagemode=FullScreen,
+}
+
+% Configuración de encabezados y pies de página
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Sistemas Operativos - Práctica 3}
+\fancyhead[R]{Diciembre - 2025}
+\fancyfoot[R]{\thepage}
+\fancyfoot[L]{Julian Hinojosa}
+
+% ============================================================
+% CONFIGURACIONES ESPECÍFICAS POR ASIGNATURA
+% ============================================================
+
+% --- [SISTEMAS OPERATIVOS] Configuración de listings para código ---
+\usepackage{listings}
+
+% Configuración de colores para el código
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{codeorange}{rgb}{0.8,0.4,0}
+\definecolor{framecolor}{rgb}{0.7,0.7,0.7}
+
+% Configuración de listings para código C
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{blue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=8pt,
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=4,
+    frame=single,
+    frameround=tttt,
+    rulecolor=\color{framecolor},
+    framesep=4pt,
+    xleftmargin=15pt,
+    xrightmargin=5pt,
+    language=C,
+    extendedchars=true,
+    inputencoding=utf8,
+    escapeinside={(*@}{@*)},
+    morecomment=[l][\color{codeorange}]{\#},
+    columns=flexible,
+    aboveskip=15pt,
+    belowskip=10pt,
+    literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+             {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+             {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1 {¡}{{!`}}1
+}
+
+\lstset{style=mystyle}
+
+% Configuración para el caption de los listings
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox{gray}{\parbox{\dimexpr\textwidth-2\fboxsep\relax}{#1#2#3}}}
+\captionsetup[lstlisting]{format=listing, labelfont=white, textfont=white, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
+% --- FIN [SISTEMAS OPERATIVOS] ---
+
+\begin{document}
+
+% --- Portada y índice sin numeración ---
+\pagenumbering{gobble} % no mostrar números de página en preliminares
+
+% Página de portada - Imagen ocupando la totalidad de la página
+\begin{titlepage}
+    % Esto pone la imagen detrás de todo, ocupando toda la hoja
+    \AddToShipoutPictureBG*{%
+        \AtPageLowerLeft{%
+            % Asegúrate que la imagen se llama 'portada.png'
+            \includegraphics[width=\paperwidth,height=\paperheight]{portada.png}%
+        }%
+    }
+    \null % Comando invisible para que LaTeX sepa que aquí hay una página
+\end{titlepage}
+
+\newpage
+
+% Tabla de contenidos
+\tableofcontents
+\newpage
+
+% --- A partir de aquí numeración normal ---
+\pagenumbering{arabic}   % cambiar a 1,2,3...
+\setcounter{page}{1}     % empezar en 1
+\pagestyle{fancy}        % restaurar encabezados/pies definidos en el preámbulo
+
+% Inicio del documento
+\section{Introducción}
+
+Una de las funciones más importantes de los sistemas operativos es gestionar y organizar el sistema de memoria. En esta práctica se implementa un simulador de gestión de memoria basado en el esquema de **particiones dinámicas o variables**.
+
+El programa desarrollado, denominado \texttt{gestormemoria}, permite simular la carga y descarga de procesos en un espacio de memoria de 2000 unidades, utilizando una unidad de asignación mínima de 100. Se han implementado dos algoritmos de asignación de particiones fundamentales:
+\begin{itemize}
+    \item \textbf{Primer hueco} (First Fit): Asigna el primer bloque libre que sea suficiente para el proceso.
+    \item \textbf{Siguiente hueco} (Next Fit): Similar al anterior, pero comienza la búsqueda a partir de la última asignación realizada.
+\end{itemize}
+
+La implementación se ha realizado en lenguaje C, incluyendo la generación de un fichero de registro (\texttt{particiones.txt}) y una visualización gráfica del estado de la memoria (utilizando Raylib) para facilitar la comprensión del funcionamiento de los algoritmos.
+
+\section{Objetivos}
+
+Los objetivos de esta práctica son:
+
+\begin{itemize}
+    \item Comprender los conceptos fundamentales de la gestión de memoria mediante asignación contigua y particiones dinámicas.
+    \item Implementar las estructuras de datos necesarias para gestionar particiones de memoria y huecos libres.
+    \item Programar y comparar el funcionamiento de los algoritmos de asignación \textit{primer hueco} y \textit{siguiente hueco}.
+    \item Simular la ejecución temporal de procesos, gestionando su llegada, asignación de memoria y liberación de recursos tras su ejecución.
+    \item Visualizar gráficamente el estado de la memoria para analizar la fragmentación y el comportamiento de los algoritmos.
+\end{itemize}
+
+\section{Desarrollo}
+
+El código fuente del proyecto se ha estructurado de forma modular para separar la lógica de la simulación, la gestión de entrada/salida y la interfaz 
+de usuario. A continuación se describen los principales componentes y archivos que conforman la solución:
+
+\subsection{Estructura del Proyecto}
+
+\begin{itemize}
+    \item \textbf{main.c}: Es el punto de entrada de la aplicación. Su función principal es inicializar la simulación y crear dos procesos mediante 
+    la llamada al sistema \texttt{fork()}:
+    \begin{itemize}
+        \item \textbf{Proceso Padre}: Ejecuta la interfaz textual (TUI) para depuración y control paso a paso por consola.
+        \item \textbf{Proceso Hijo}: Inicializa la librería \textbf{Raylib} y gestiona la interfaz gráfica (GUI) para la visualización en tiempo real
+        de la memoria y el estado de los procesos.
+    \end{itemize}
+    
+    \item \textbf{sim\_engine.c / .h}: Constituye el núcleo o motor de la simulación. Define las estructuras de datos fundamentales (\texttt{Memoria}, 
+    \texttt{Particion}, \texttt{Proceso}) e implementa la lógica de gestión de memoria:
+    \begin{itemize}
+        \item Inicialización del sistema de particiones.
+        \item Algoritmos de búsqueda de huecos: \textit{Primer Hueco} y \textit{Siguiente Hueco}.
+        \item Asignación de memoria (con división de huecos si es necesario) y compactación automática (fusión de huecos adyacentes al liberar un proceso).
+        \item Control del ciclo de vida de los procesos (llegada, ejecución/envejecimiento y finalización) a través de la función \texttt{avanzar\_tiempo}.
+    \end{itemize}
+    
+    \item \textbf{ficheros.c / .h}: Módulo encargado de la persistencia y entrada de datos. Para garantizar la robustez en las operaciones de entrada/salida, este módulo se apoya en la librería externa \textbf{file\_utils} (ubicada en la raíz del repositorio, en el directorio \texttt{lib/}).
+    \begin{itemize}
+        \item \texttt{cargar\_procesos}: Lee y parsea el archivo de entrada con la definición de los procesos utilizando llamadas al sistema POSIX y las utilidades de lectura completa de la librería mencionada.
+        \item \texttt{guardar\_estado}: Escribe el estado actual de las particiones en el fichero de log (\texttt{particiones.txt}) en cada instante 
+        de la simulación.
+    \end{itemize}
+    \textit{Nota sobre dependencias}: Debido al uso de esta librería de utilidades compartida (\texttt{lib/file\_utils.h}), es imprescindible disponer de la estructura completa del repositorio para la correcta compilación del proyecto.
+\end{itemize}
+
+\subsection{Estructuras de Datos Principales}
+
+Para modelar el problema se han definido las siguientes estructuras en \texttt{sim\_engine.h}:
+
+\begin{itemize}
+    \item \textbf{Proceso}: Almacena la información de cada tarea, incluyendo su nombre, tiempos de llegada y ejecución, memoria requerida (que será alineada)
+    y banderas de estado (en memoria, finalizado).
+    \item \textbf{Particion}: Representa un bloque de memoria contigua. Puede estar en estado ocupado (asignado a un proceso) o libre (hueco). Contiene la 
+    dirección de inicio y su tamaño.
+    \item \textbf{Memoria}: Estructura contenedora que mantiene el array de particiones, el contador de particiones activas y el puntero al último índice
+    asignado para soportar el algoritmo \textit{Siguiente Hueco}.
+\end{itemize}
+
+\newpage
+
+\section{Código Fuente Destacado}
+
+A continuación se presentan los fragmentos más relevantes de la implementación, correspondientes a la lógica del motor de simulación (\texttt{sim\_engine.c}).
+
+\subsection{Algoritmos de Búsqueda de Huecos}
+
+Esta función implementa las dos estrategias solicitadas. Para \textit{Primer Hueco} se realiza una búsqueda lineal desde el inicio, mientras que para \textit{Siguiente Hueco} se utiliza una búsqueda circular comenzando desde \texttt{ultimo\_indice\_asignado}.
+
+\begin{lstlisting}[caption={Implementación de First Fit y Next Fit}, label={lst:buscar_hueco}]
+int buscar_hueco(Memoria *m, int mem_requerida, TipoAlgo tipo_algo) {
+    // Algoritmo Primer Hueco
+    if (tipo_algo == ALGO_PRIMER_HUECO) {
+        // Recorremos todas las particiones buscando el primer hueco que quepa
+        for (int i = 0; i < m->cant_particiones; i++) {
+            if (m->particiones[i].estado == 0 && m->particiones[i].tamano >= mem_requerida) {
+                return i; // Devolvemos el índice del hueco encontrado
+            }
+        }
+    }
+
+    // Algoritmo Siguiente Hueco
+    if (tipo_algo == ALGO_SIGUIENTE_HUECO) {
+        int inicio = m->ultimo_indice_asignado;
+        int total = m->cant_particiones;
+
+        // Búsqueda circular comenzando desde la última asignación
+        for (int j = 0; j < total; j++) {
+            int i = (inicio + j) % total;
+            if (m->particiones[i].estado == 0 && m->particiones[i].tamano >= mem_requerida)
+                return i;
+        }
+    }
+    return -1;
+}
+\end{lstlisting}
+
+\subsection{Compactación de Memoria}
+
+Para evitar la fragmentación externa excesiva, se implementa una función de compactación que fusiona huecos adyacentes. Esta función es invocada automáticamente tras la liberación de un proceso.
+
+\begin{lstlisting}[caption={Función de Compactación de Huecos}, label={lst:compactar}]
+void compactar(Memoria *m) {
+    // Recorremos hasta el penúltimo elemento
+    for (int i = 0; i < m->cant_particiones - 1; i++) {
+        // Si la partición actual y la siguiente son huecos, las unimos
+        if (m->particiones[i].estado == 0 && m->particiones[i+1].estado == 0) {
+            // 1. Sumamos tamaños de las particiones
+            m->particiones[i].tamano += m->particiones[i+1].tamano;
+            
+            // 2. Movemos todas las particiones siguientes una posición a la izquierda
+            for (int j = i + 1; j < m->cant_particiones - 1; j++) {
+                m->particiones[j] = m->particiones[j+1];
+            }
+            
+            // 3. Actualizamos el contador y retrocedemos índice para re-verificar
+            m->cant_particiones--;
+            i--;
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection{Motor de Tiempo y Ciclo de Vida}
+
+La función \texttt{avanzar\_tiempo} orquesta la simulación en cada "tick" de reloj, gestionando el envejecimiento de los procesos en ejecución, la liberación de memoria al terminar y la admisión de nuevos procesos.
+
+\begin{lstlisting}[caption={Lógica principal de avance temporal}, label={lst:avanzar}]
+void avanzar_tiempo(Memoria *m, Proceso procesos[], int num_procesos, int *reloj_actual, TipoAlgo algo, const char* ruta_log) {
+    // 1. Envejecimiento y finalización
+    for (int i = 0; i < num_procesos; i++) {
+        if (procesos[i].en_memoria && !procesos[i].finalizado) {
+            procesos[i].t_restante--;
+
+            if (procesos[i].t_restante <= 0) {
+                liberar_proceso(m, procesos[i].nombre);
+                procesos[i].en_memoria = false;
+                procesos[i].finalizado = true;
+            }
+        }
+    }
+
+    // 2. Llegada de nuevos procesos (Planificador a largo plazo)
+    for (int i = 0; i < num_procesos; i++) {
+        if (!procesos[i].en_memoria && !procesos[i].finalizado && procesos[i].t_llegada <= *reloj_actual) {
+            if (asignar_proceso(m, procesos[i], algo)) {
+                procesos[i].en_memoria = true;
+                procesos[i].t_restante = procesos[i].t_ejecucion;
+            }
+        }
+    }
+
+    // 3. Guardar estado y avanzar reloj
+    guardar_estado(ruta_log, m, *reloj_actual);
+    (*reloj_actual)++;
+}
+\end{lstlisting}
+
+\subsection{Integración con File Utils}
+
+Para asegurar la integridad en las operaciones de entrada/salida frente a posibles interrupciones del sistema o transferencias parciales, se hace uso de las funciones \texttt{read\_all} y \texttt{write\_all} proporcionadas por la librería auxiliar. A continuación se muestra cómo se utilizan para la carga segura del archivo de definición de procesos en \texttt{ficheros.c}:
+
+\begin{lstlisting}[caption={Lectura robusta del fichero de entrada}, label={lst:file_utils_usage}]
+int cargar_procesos(const char* ruta, Proceso procesos[]) {
+    // 1. Abrir descriptor de archivo (POSIX)
+    int fd = open(ruta, O_RDONLY);
+    if (fd == -1) {
+        perror("Error abriendo fichero");
+        return 0;
+    }
+
+    char buffer_archivo[SIZE_BUFFER_LECTURA];
+    memset(buffer_archivo, 0, SIZE_BUFFER_LECTURA);
+
+    // 2. Uso de read_all para garantizar lectura completa
+    // Maneja internamente bucles por lecturas parciales o EINTR
+    ssize_t leidos = read_all(fd, buffer_archivo, SIZE_BUFFER_LECTURA - 1);
+    
+    close(fd); // Cierre seguro tras lectura
+
+    if (leidos == -1) return 0;
+
+    // 3. Procesamiento del buffer (parsing)...
+    // ...
+    return count;
+}
+\end{lstlisting}
+
+De manera análoga, la función \texttt{guardar\_estado} utiliza \texttt{write\_all} para asegurar que las líneas de log se escriban completas en el disco, evitando escrituras fragmentadas.
+
+\section{Instalación y Ejecución}
+
+Dado que se entrega el repositorio completo del proyecto, a continuación se detallan los pasos necesarios para compilar y ejecutar el simulador en distintos 
+sistemas operativos.
+
+\subsection{Requisitos Previos}
+
+El proyecto requiere un compilador de C, CMake y la librería Raylib.
+
+\subsubsection{macOS}
+\begin{itemize}
+    \item Instalar herramientas de desarrollo: \texttt{xcode-select --install}
+    \item Instalar CMake y Raylib (vía Homebrew):
+    \begin{lstlisting}[language=bash]
+brew install cmake raylib
+    \end{lstlisting}
+\end{itemize}
+
+\subsubsection{Linux (Debian/Ubuntu)}
+\begin{itemize}
+    \item Instalar compilador, CMake y dependencias gráficas:
+    \begin{lstlisting}[language=bash]
+sudo apt update
+sudo apt install build-essential cmake libraylib-dev
+    \end{lstlisting}
+\end{itemize}
+
+\subsubsection{Windows}
+Para la instalación de Raylib en Windows, se recomienda consultar la guía oficial en el siguiente enlace. En general, para facilitar el proceso de instalación y configuración de entornos de desarrollo como este, se sugiere el uso de sistemas operativos UNIX-like (macOS o Linux).
+
+\begin{itemize}
+    \item Guía detallada para trabajar con Raylib en Windows: \url{https://github.com/raysan5/raylib/wiki/Working-on-Windows}
+\end{itemize}
+
+\subsection{Compilación}
+
+El proceso de construcción es estándar gracias a CMake. Asegúrese de estar en el directorio `practica3` (ubicado en la raíz del repositorio en 
+`noob-code/UA/year-2/OS/practica3`) y ejecute los siguientes comandos en su terminal:
+
+\begin{lstlisting}[language=bash, caption={Comandos de construcción}]
+mkdir build
+cd build
+cmake ..
+make
+\end{lstlisting}
+
+\textit{Nota para Windows (MinGW)}: Si el comando \texttt{make} no está disponible, utilice \texttt{mingw32-make}.
+
+Esto generará el ejecutable \texttt{gestomemoria} (o \texttt{gestomemoria.exe} en Windows) dentro del directorio \texttt{build}.
+
+\subsection{Ejecución}
+
+Asegúrese de que el archivo de datos \texttt{entrada.txt} se encuentra en el mismo directorio que el ejecutable o que el programa pueda acceder a él.
+
+\begin{lstlisting}[language=bash, caption={Ejecución del programa}]
+./gestomemoria
+\end{lstlisting}
+
+Al iniciar, el programa lanzará automáticamente:
+\begin{enumerate}
+    \item Una ventana gráfica (Raylib) para visualizar la memoria.
+    \item La terminal original para ver los logs detallados y mensajes de depuración.
+\end{enumerate}
+
+\section{Conclusiones}
+
+La realización de esta práctica ha permitido consolidar la comprensión de los mecanismos fundamentales de la gestión de memoria en sistemas operativos, 
+con un enfoque particular en las particiones dinámicas. Hemos podido observar cómo la implementación de algoritmos como Primer Hueco y Siguiente Hueco 
+influye directamente en la eficiencia de la asignación de memoria y en la aparición de fragmentación.
+
+Se ha demostrado la importancia de la compactación de memoria para mitigar la fragmentación externa, un problema inherente a la gestión de particiones 
+variables. La simulación visual mediante Raylib ha sido una herramienta invaluable para entender de forma intuitiva el comportamiento dinámico de la memoria, 
+la creación y fusión de huecos, y el ciclo de vida de los procesos.
+
+Finalmente, la experiencia de desarrollar un simulador desde cero, gestionando aspectos como la carga de procesos, la asignación, liberación y el avance 
+temporal, ha proporcionado una perspectiva práctica y profunda sobre los desafíos y soluciones en la administración de recursos en un sistema operativo. 
+Se ha logrado un sistema robusto que permite la experimentación y análisis de diferentes escenarios de carga y algoritmos de gestión.
+
+\section{Bibliografía}
+
+\begin{itemize}
+  \item \textbf{Transparencias de la Asignatura}: Tema 4 - Gestión de Memoria. Sistemas Operativos (Grado en Ingeniería Informática), Universidad de Alicante, 2025-2026.
+  \item \textbf{Enunciado de la Práctica}: Práctica 3 - Gestión de memoria. Sistemas Operativos, Universidad de Alicante, 2025/2026.
+  \item \textbf{Documentación de C}: \textit{cppreference.com - C reference}. Disponible en: \url{https://en.cppreference.com/w/c}.
+  \item \textbf{Documentación de Raylib}: \textit{Raylib Cheatsheet \& Wiki}. Disponible en: \url{https://www.raylib.com/cheatsheet/cheatsheet.html}.
+  \item \textbf{POSIX Standard}: \textit{The Open Group Base Specifications Issue 7}. (Para referencias sobre \texttt{fork}, \texttt{open}, \texttt{read}).
+\end{itemize}
+  
+\end{document}

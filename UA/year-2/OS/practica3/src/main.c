@@ -71,8 +71,10 @@ int main(int argc, char const* argv[])
         int num_procesos = cargar_procesos("entrada.txt", procesos);
 
         run_gui(&m, procesos, num_procesos);
+        system("clear");
         _exit(0); // El hijo termina después de cerrar la GUI
     } else {
+        system("clear");
         // Proceso Padre: TUI (Terminal)
         test_sim();
         // Esperar a que el hijo (GUI) termine
