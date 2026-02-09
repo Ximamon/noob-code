@@ -1,10 +1,14 @@
-set terminal png
+set terminal pngcairo enhanced size 800,600
 set output "quickSort.png"
 
 set xlabel "Array size (n = 2^k)"
 set ylabel "CPU time (ms)"
-set xtics ("2^(15)" 32768, "2^(16)" 65536, "2^(17)" 131072, "2^(18)" 262144, "2^(19)" 524288, "2^(20)" 1048576)
-set grid
+
+# Escala logarítmica en base 2 para que el crecimiento sea visualmente lineal
+set logscale x 2 
+# Formato automático para etiquetas: 2^{exponente}
+set format x "2^{%L}"
+set xtics rotate by -45  # Inclina las etiquetas para que no se pisen
 
 set title  "Quick Sort: Empirical Analysis of Exact Time Complexity"
 
@@ -49,14 +53,14 @@ set title "Quick Sort: Exact time complexity and Fit function"
 #fit y(x) "quickSort.CPUtimes" using 1:2 via a,b
 
 ##Fit to a (n log n + n) function: 
-#y(x)=a*x*log(x) + b * x + c 
-#fitFunction="Fitting Quicksort time values to f(n) = n log(n)+n"
-#fit y(x) "quickSort.CPUtimes" using 1:2 via a,b,c
+y(x)=a*x*log(x) + b * x + c 
+fitFunction="Fitting Quicksort time values to f(n) = n log(n)+n"
+fit y(x) "quickSort.CPUtimes" using 1:2 via a,b,c
 
 ##Fit to a (2 (n log n)) function: 
-y(x)= a*(2 * x * log(x)) + b
-fitFunction="Fitting Quicksort time values to f(n) = 2 (n log n)"
-fit y(x) "quickSort.CPUtimes" using 1:2 via a,b
+#y(x)= a*(2 * x * log(x)) + b
+#fitFunction="Fitting Quicksort time values to f(n) = 2 (n log n)"
+#fit y(x) "quickSort.CPUtimes" using 1:2 via a,b
 
 #------------------------------------------------------------------------
 
