@@ -34,11 +34,14 @@ set title "Quick Sort: Exact time complexity and Fit function"
 #fitFunction="Fitting Quicksort time values to f(n) = n log(n)+k"
 #fit y(x) "quickSort.CPUtimes" using 1:2 via a,b
 
-
 ##Fit to a cuadratic function: 
 #y(x)=a*x*x + b*x + c
 #fitFunction="Fitting Quicksort time values to f(n) = n²+n+k"
 #fit y(x) "quickSort.CPUtimes" using 1:2 via a,b,c
+
+#------------------------------------------------------------------------
+
+# Pruebas fit de la practica
 
 ##Fit to a (n log n) function: 
 #y(x)=a*x*log(x) + b
