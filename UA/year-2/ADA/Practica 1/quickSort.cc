@@ -1,6 +1,7 @@
+// Julian Hinojosa Gil, 48795869N
 /*
-ADA 2025-26
-Práctica 1: "Empirical analysis of Quicksort average-time complexity."
+    ADA 2025-26
+    Práctica 1: "Empirical analysis of Quicksort average-time complexity."
 */
 
 #include <unistd.h>
