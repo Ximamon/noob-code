@@ -34,7 +34,6 @@ void middle_QuickSort(int * v, long left, long right){
 }
 
 int main(void) {
-    int repeticiones = 30;
     srand(0);
     
     // Cabecera de texto
@@ -50,12 +49,12 @@ int main(void) {
     // Bucle para diferentes tamaños de vector de 2^15 a 2^20
     for (int exp = 15; exp <= 20; exp++) {
         // Variable para acumular tiempos de las 30 repeticiones
-        auto cumulative_time = 0.0;
+        float cumulative_time = 0.0;
         size_t size = size_t(pow(2, exp)); // Tamaño del vector actual
         std::cout << size << "\t\t" << std::flush; // Imprimimos el tamaño del vector
 
         // Generamos varios vectores de tamaño en base a potencia de 2
-        for (int i = 0; i < repeticiones; i++) {
+        for (int i = 0; i < 30; i++) {
             // Reserva de memoria para el vector, si falla, salimos
             int *v = new int [size];
             if (!v){
@@ -84,7 +83,7 @@ int main(void) {
 
             delete[] v; 
         }
-        std::cout << cumulative_time / repeticiones << std::endl; // Imprimimos el tiempo medio
+        std::cout << cumulative_time / 30 << std::endl; // Imprimimos el tiempo medio
     }
 
     return 0;
