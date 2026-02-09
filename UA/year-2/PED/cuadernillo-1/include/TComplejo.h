@@ -11,9 +11,9 @@ public:
     TComplejo ();                       //Constructor por defecto : PARTE REAL e IMAGINARIA inicializadas a 0
     TComplejo (double );                //Constructor a partir de la PARTE REAL
     TComplejo (double , double);        //Constructor a partir de la PARTE REAL e IMAGINARIA
-    TComplejo (const TComplejo&);             //Constructor copia
+    TComplejo (const TComplejo&);       //Constructor copia
     ~TComplejo();                       //Destructor
-    TComplejo& operator= (TComplejo&);  // Sobrecarga del operador asignación
+    TComplejo& operator= (const TComplejo&);  // Sobrecarga del operador asignación
 
     TComplejo operator+ (TComplejo&);
     TComplejo operator- (TComplejo&);
@@ -22,17 +22,17 @@ public:
     TComplejo operator- (double);
     TComplejo operator* (double);
 
-    bool operator== (TComplejo&);       // IGUALDAD de números complejos
-    bool operator!= (TComplejo&);       // DESIGUALDAD de números complejos
-    double Re();                        // Devuelve PARTE REAL
-    double Im();                        // Devuelve PARTE IMAGINARIA
-    void Re(double);                    // Modifica PARTE REAL
-    void Im(double);                    // Modifica PARTE IMAGINARIA
-    double Arg(void);                   // Calcula el Argumento (en Radianes)
-    double Mod(void);                   // Calcula el Módulo
+    bool operator== (const TComplejo&) const;   // IGUALDAD de números complejos
+    bool operator!= (TComplejo&);               // DESIGUALDAD de números complejos
+    double Re() const;                          // Devuelve PARTE REAL
+    double Im() const;                          // Devuelve PARTE IMAGINARIA
+    void Re(double);                            // Modifica PARTE REAL
+    void Im(double);                            // Modifica PARTE IMAGINARIA
+    double Arg(void);                           // Calcula el Argumento (en Radianes)
+    double Mod(void);                           // Calcula el Módulo
 
     // Sobrecarga del operador SALIDA
-    friend std::ostream & operator<<(std::ostream &, TComplejo &);
+    friend std::ostream & operator<<(std::ostream &, const  TComplejo &);
     friend TComplejo operator+ (double , TComplejo&);
     friend TComplejo operator- (double , TComplejo&);
     friend TComplejo operator* (double , TComplejo&);

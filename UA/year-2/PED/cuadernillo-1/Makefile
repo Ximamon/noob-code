@@ -1,5 +1,5 @@
 CC = g++ # Version: 13.2.0
-FLAGS = -g -Wall -Wextra -std=c++11
+FLAGS = -g -O0 -Wall -Wextra -std=c++11
 EXEC = main
 
 # Directorios
@@ -30,6 +30,10 @@ $(BUILD_DIR)/%.o: $(LIB_DIR)/%.cpp | $(BUILD_DIR)
 # Regla para crear el directorio de build si no existe
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
+
+# Regla para correr el ejecutable
+run: $(EXEC)
+	./$(EXEC)
 
 # Regla para limpiar los archivos generados
 clean:
