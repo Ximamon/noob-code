@@ -23,6 +23,6 @@ tar: quickSort.cc quickSort.gpi makefile
 	tar cvfz 48795869N.tar.gz quickSort.cc quickSort.gpi makefile
 
 clean: 
-	rm -f quickSort fit.log quickSort.CPUtimes quickSort*.png *~
+	rm -rf quickSort quickSort.dSYM fit.log quickSort.CPUtimes quickSort*.png *~
 # bubbleSort bubbleSort.CPUtimes bubbleSort*.png
  
