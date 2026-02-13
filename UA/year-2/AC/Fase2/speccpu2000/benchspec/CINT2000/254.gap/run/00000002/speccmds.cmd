@@ -1,0 +1,2 @@
+-u C:/speccpu2000/benchspec/CINT2000/254.gap/run/00000002
+-i ref.in -o ref.out -e ref.err ../00000002/gap_base.vc7.x87.exe -l ./ -q -m 192M

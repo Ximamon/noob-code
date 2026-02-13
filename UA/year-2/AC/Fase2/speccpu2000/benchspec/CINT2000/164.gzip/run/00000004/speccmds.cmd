@@ -1,0 +1,6 @@
+-u C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004
+-o input.source.out -e input.source.err ../00000004/gzip_base.vc7.x87.exe input.source 60
+-o input.log.out -e input.log.err ../00000004/gzip_base.vc7.x87.exe input.log 60
+-o input.graphic.out -e input.graphic.err ../00000004/gzip_base.vc7.x87.exe input.graphic 60
+-o input.random.out -e input.random.err ../00000004/gzip_base.vc7.x87.exe input.random 60
+-o input.program.out -e input.program.err ../00000004/gzip_base.vc7.x87.exe input.program 60

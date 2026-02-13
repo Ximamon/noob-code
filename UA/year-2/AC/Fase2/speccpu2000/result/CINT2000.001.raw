@@ -1,0 +1,97 @@
+spec.cpu2000.company_name: --
+spec.cpu2000.hw_avail: --
+spec.cpu2000.hw_cpu: --
+spec.cpu2000.hw_cpu_mhz: --
+spec.cpu2000.hw_disk: --
+spec.cpu2000.hw_fpu: --
+spec.cpu2000.hw_memory: --
+spec.cpu2000.hw_model: --
+spec.cpu2000.hw_ncpu: --
+spec.cpu2000.hw_ncpuorder: --
+spec.cpu2000.hw_ocache: --
+spec.cpu2000.hw_other: --
+spec.cpu2000.hw_parallel: --
+spec.cpu2000.hw_pcache: --
+spec.cpu2000.hw_scache: --
+spec.cpu2000.hw_tcache: --
+spec.cpu2000.hw_vendor: --
+spec.cpu2000.license_num: --
+spec.cpu2000.machine_name: --
+spec.cpu2000.prepared_by: --
+spec.cpu2000.sw_avail: --
+spec.cpu2000.sw_compiler: --
+spec.cpu2000.sw_file: --
+spec.cpu2000.sw_os: --
+spec.cpu2000.sw_state: --
+spec.cpu2000.test_date: --
+spec.cpu2000.tester_name: --
+# =============== do not edit below this point ===================
+spec.cpu2000.rawhash: 1c7e5f97643d60d8649a0a46b58b1182
+spec.cpu2000.Issue: --
+spec.cpu2000.Page: --
+spec.cpu2000.Volume: --
+spec.cpu2000.basemean: 0
+spec.cpu2000.basepeak: 2
+spec.cpu2000.config: win32-x86-vc7.cfg
+spec.cpu2000.errors000: 'reportable' flag not set during run
+spec.cpu2000.errors001: 181.mcf base did not have enough runs!
+spec.cpu2000.errors002: 253.perlbmk base did not have enough runs!
+spec.cpu2000.errors003: 197.parser base did not have enough runs!
+spec.cpu2000.errors004: 300.twolf base did not have enough runs!
+spec.cpu2000.errors005: 256.bzip2 base did not have enough runs!
+spec.cpu2000.errors006: 176.gcc base did not have enough runs!
+spec.cpu2000.errors007: 175.vpr base did not have enough runs!
+spec.cpu2000.errors008: 186.crafty base did not have enough runs!
+spec.cpu2000.errors009: 254.gap base did not have enough runs!
+spec.cpu2000.errors010: 164.gzip base did not have enough runs!
+spec.cpu2000.errors011: 255.vortex base did not have enough runs!
+spec.cpu2000.errors012: 252.eon base did not have enough runs!
+spec.cpu2000.errors013: Input set must be 'ref' for a valid run (set to 'test' for this run)
+spec.cpu2000.ext: vc7.x87.exe
+spec.cpu2000.invalid: 1
+spec.cpu2000.longest_ref: --
+spec.cpu2000.mach: default
+spec.cpu2000.mean_anyway: 0
+spec.cpu2000.metric: CINT2000
+spec.cpu2000.name: int
+spec.cpu2000.peakmean: --
+spec.cpu2000.rate: 0
+spec.cpu2000.rawconfig000: H4sIAAAAAAAAA61WbW/iOBD+fP4VI7Ef9rSQttArHBLS0gA9TtAgkt1jT5UiY5xgNdhR7LTQX39j
+spec.cpu2000.rawconfig001: 81K4a+92xQVFScb2MzPPPB5TgaF8UowaoSQwtVpRuYBMSN4mFfDbDzrnjOVl/fLy8mEu5ENRSmuC
+spec.cpu2000.rawconfig002: Wk2LFw6Ga4PvwvDCQWi4wk+pCp6rwtB5xvGTKZmIFJ6FbNRr69ZN7Yk1PZakkL6InFT+x4vgD0K6
+spec.cpu2000.rawconfig003: ytHvzmsi8D1RBZSaYwhmCV+FLmkGoSkXQkHTZp3jpEIDUoARzoVBlLFghdIqMfCHkAv1rD0HHi2F
+spec.cpu2000.rawconfig004: PoGWHDF5AUKyrFxwDVRuYM4lW65o8QiWLJEIBjmnj2BKKWRaRRykCOYUQ0oymmoXoMqNWJUrnFng
+spec.cpu2000.rawconfig005: JxaC8SrMSwOMSkS0CSyAogPA9drQAkk/DgUDhG6mVRXM34M8RlAy24BR+7TBFhyriou4Lbn79j99
+spec.cpu2000.rawconfig006: es1BezA0sFCYm1TG8WhzxBhNQeWBvh0/yoJhCJuc7+NworJ6AjjIh70hh1q0paSGZYBaBrUhOMxh
+spec.cpu2000.rawconfig007: AhtVFuBPvsASCdBlbtXlSAvDfh0+ci/FIKXhGUy4NAJZvAYczShyVLV8QXfcg65ZZkreXF8EOdqx
+spec.cpu2000.rawconfig008: 2vspP1dd2sI5AlpYqrBQp1KxKN49N4CboQEfD2sPDFTdasu1KQtp1eSi20vArnc1Fi+7vTLfIK3o
+spec.cpu2000.rawconfig009: Z8vNd5LDwZq05vVTouAtdVq65pxLt1Gx+NsN4B/yqLu8jwwNW0ZCvvbve8EUdlcHCGWuQxwMTzQT
+spec.cpu2000.rawconfig010: C0yfoKQ5wOuADZKo0uSliZ2MDRqpZkSkti3EvCgUbrUObLgmfG3geLHNbN1qenzNCbKRCW1+2o8J
+spec.cpu2000.rawconfig011: aeCq2cT7V7hqNfBuYaBntArwd3UDzTPu8jsDjix4QsvMdN55tsnA33E5wCzwhfg7A8uIP5vtX89K
+spec.cpu2000.rawconfig012: 6RbZt937RGjeOWlV4D6I+m2k/cZLGcN+xxcacAfZHpKiaLBvoOSKAhlEMeln7ARwIMOq4Z9M+MEk
+spec.cpu2000.rawconfig013: Go6Hf/ZdzhfBGi7uRhbT8nAYOxq5m+E9JRbN9tGO1c6pj/2e+E8ntGDLttuX7/g7mvCm23PKM3GH
+spec.cpu2000.rawconfig014: osiE2Wwb/zmV2VXkfcH1Z9G0G/uDUfcuxOxqPZpleNR34u1zNz7qHSYMri63F5BRD3lxNv7hM/YY
+spec.cpu2000.rawconfig015: IR+hhocOe2zvJzltKMPbkNIsxdabH2Vnuz52Ynve4AmGzZThUalgsDs0bMPbt03AnqW58RDvqtny
+spec.cpu2000.rawconfig016: tmDvZ1XZhj04RJ2INbohlX8JuXG5j7lSCW5/x3l2mvrwGVls3XisoInZ/ACR91EsGq0bQuq/1D2u
+spec.cpu2000.rawconfig017: 5PtLw+DL1O/Hk2l/MJzFdpvj+mhihTcJplH3djgaRt8c6G/dMO5Pp6NhGFnghod/BLL56vEH4gon
+spec.cpu2000.rawconfig018: fT/GY9L+XYvvoyBE26Q/HfVGqPyxg71GgvPvg+wg4LcwtnGNu6NR4GMaQRTAq9k/MhPyF2337HVM
+spec.cpu2000.rawconfig019: CgAA
+spec.cpu2000.size: test
+spec.cpu2000.suitever: 1.3
+spec.cpu2000.table: 1
+spec.cpu2000.time: 1488221677
+spec.cpu2000.toolsver: 1585
+spec.cpu2000.tunelist000: base
+spec.cpu2000.units: SPECint
+spec.cpu2000.valid: 1
+spec.cpu2000.results.164_gzip.base.000.benchmark: 164.gzip
+spec.cpu2000.results.164_gzip.base.000.copies: 1
+spec.cpu2000.results.164_gzip.base.000.ext: vc7.x87.exe
+spec.cpu2000.results.164_gzip.base.000.mach: default
+spec.cpu2000.results.164_gzip.base.000.ratio: --
+spec.cpu2000.results.164_gzip.base.000.reference: --
+spec.cpu2000.results.164_gzip.base.000.reported_nsec: 376000000
+spec.cpu2000.results.164_gzip.base.000.reported_sec: 0
+spec.cpu2000.results.164_gzip.base.000.reported_time: 0.376
+spec.cpu2000.results.164_gzip.base.000.selected: 1
+spec.cpu2000.results.164_gzip.base.000.valid: 1

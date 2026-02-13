@@ -1,0 +1,1 @@
+-c C:/speccpu2000/benchspec/CINT2000/254.gap/run/00000002 -o ref.out.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10  -r 0.01 C:/speccpu2000/benchspec/CINT2000/254.gap/data/ref/output/ref.out ref.out

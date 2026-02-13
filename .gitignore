@@ -53,4 +53,6 @@ UA/year-2/OS/practica2/48795869N - p2
 /UA/year-2/ADA/Practica 1/.vscode
 UA/year-2/AC/Fase 1/memoria.bbl
 .gitignore
-UA/year-2/AC/Fase 1/memoria.synctex.gz
+/UA/year-2/AC/Fase2/EjerciciosEnsamblador/.vs/EjerciciosEnsamblador
+/UA/year-2/AC/Fase2/EjerciciosEnsamblador/Debug
+/UA/year-2/AC/Fase2/EjerciciosEnsamblador/Ejemplo1/Debug

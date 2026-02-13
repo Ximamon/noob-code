@@ -1,0 +1,3 @@
+-c C:/speccpu2000/benchspec/CINT2000/255.vortex/run/00000002 -o vortex1.out.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10 C:/speccpu2000/benchspec/CINT2000/255.vortex/data/ref/output/vortex1.out vortex1.out
+-c C:/speccpu2000/benchspec/CINT2000/255.vortex/run/00000002 -o vortex2.out.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10 C:/speccpu2000/benchspec/CINT2000/255.vortex/data/ref/output/vortex2.out vortex2.out
+-c C:/speccpu2000/benchspec/CINT2000/255.vortex/run/00000002 -o vortex3.out.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10 C:/speccpu2000/benchspec/CINT2000/255.vortex/data/ref/output/vortex3.out vortex3.out

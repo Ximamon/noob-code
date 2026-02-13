@@ -1,0 +1,586 @@
+
+
+
+runspec started at Fri Feb 13 14:30:21 2026
+C:\Users\alumno\Desktop\noob-code\UA\year-2\AC\Fase2\speccpu2000\bin\runspec --reportable --config win32-x86-vc7.cfg -T base int
+Identifying output formats...asc...config...html...pdf...ps...raw...
+Verbosity = 5
+Action    = validate
+Tune      = base
+Ext       = vc7.x87.exe
+Size      = ref
+Machine   = default
+benchmarks= 164.gzip,175.vpr,176.gcc,181.mcf,186.crafty,197.parser,252.eon,253.perlbmk,254.gap,255.vortex,256.bzip2,300.twolf
+outputs   = raw,ASCII
+We will use: 164.gzip, 175.vpr, 176.gcc, 181.mcf, 186.crafty, 197.parser, 252.eon, 253.perlbmk, 254.gap, 255.vortex, 256.bzip2, 300.twolf
+Compiling Binaries
+  Up to date 164.gzip ref base vc7.x87.exe default
+  Up to date 175.vpr ref base vc7.x87.exe default
+  Up to date 176.gcc ref base vc7.x87.exe default
+  Up to date 181.mcf ref base vc7.x87.exe default
+  Up to date 186.crafty ref base vc7.x87.exe default
+  Up to date 197.parser ref base vc7.x87.exe default
+  Up to date 252.eon ref base vc7.x87.exe default
+
+-----------------------------------
+  Building 253.perlbmk ref base vc7.x87.exe default
+Wrote to makefile 'C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/253.perlbmk/run/00000002/Makefile.spec':
+TUNE=base
+EXT=vc7.x87.exe
+
+BENCHLANG        = C
+CC               = cl
+COPTIMIZE        = /Ox /GL /Op
+CXX              = cl
+CXXOPTIMIZE      = /Ox /GL /GX /GR
+EXTRA_CFLAGS     = -DSPEC_CPU2000_NTOS -DPERLDLL /MT
+F77              = 
+FC               = 
+OS               = windows_nt
+USE_VPATH        = 0
+VENDOR           = 
+VPATH_CINCLUDE   = 
+VPATH_CXXINCLUDE = 
+VPATH_F90INCLUDE = 
+VPATH_FINCLUDE   = 
+VPATH_INCLUDE    = 
+abstol           = 
+action           = validate
+backup_config    = 1
+baseexe          = perlbmk
+basepeak         = 1
+benchdir         = benchspec
+benchmark        = 253.perlbmk
+bindir           = exe
+changedmd5       = 0
+check_md5        = 1
+command_add_redirect = 0
+commanderrfile   = speccmds.err
+commandexe       = perlbmk_base.vc7.x87.exe
+commandfile      = speccmds.cmd
+commandoutfile   = speccmds.out
+compareerrfile   = compare.err
+comparefile      = compare.cmd
+compareoutfile   = compare.out
+compile_error    = 0
+compwhite        = 
+configdir        = config
+configpath       = C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/config/win32-x86-vc7.cfg
+datadir          = data
+deletebinaries   = 0
+deletework       = 0
+difflines        = 10
+dirprot          = 511
+endian           = 1234
+env_vars         = 0
+exitvals         = spec_exit
+expand_notes     = 0
+ext              = vc7.x87.exe
+fast_rundir_verify = 0
+feedback         = 1
+fileprot         = 511
+help             = 0
+ignore_errors    = yes
+ignore_sigint    = 1
+inputdir         = input
+iterations       = 3
+line_width       = 0
+locking          = 1
+log              = log
+log_line_width   = 0
+lognum           = 004
+mach             = default
+make             = specmake
+make_no_clobber  = 0
+makeflags        = 
+max_active_compares = 0
+max_users        = 1
+mean_anyway      = 0
+min_report_runs  = 3
+minimize_builddirs = 0
+minimize_rundirs = 0
+name             = perlbmk
+nc               = 0
+num              = 253
+obiwan           = 
+os_exe_ext       = .exe
+output           = asc
+output_format    = asc
+outputdir        = output
+path             = C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/253.perlbmk
+prefix           = 
+rate             = 0
+rawfile          = 
+rawformat        = 0
+rebuild          = 0
+ref_tree_level   = Top level Config
+reftime          = reftime
+reltol           = 
+reportable       = 1
+resultdir        = result
+run              = all
+safe_eval        = 1
+setpgrp_enabled  = 1
+setprocgroup     = 1
+sigint           = 2
+size             = ref
+skiptol          = 
+smarttune        = base
+specdiff         = specdiff.bat
+specmake         = Makefile.spec
+specrun          = specinvoke
+srcalt           = 
+srcdir           = src
+subworkdir       = work
+table            = 1
+teeout           = 0
+teerunout        = 0
+top              = C:\Users\alumno\Desktop\noob-code\UA\year-2\AC\Fase2\speccpu2000
+tune             = base
+uid              = 0
+unbuffer         = 0
+use_submit_for_speed = 0
+username         = alumno
+users            = 1
+vendor           = anon
+vendor_makefiles = 0
+verbose          = 5
+version          = 0
+workdir          = run
+worklist         = list
+  Compile for '253.perlbmk' started at:Fri Feb 13 14:30:23 2026 (1770989423)
+Issuing make command 'specmake  clean > make.out 2> make.err'
+Start make command: Fri Feb 13 14:30:23 2026 (1770989423)
+Stop make command: Fri Feb 13 14:30:23 2026 (1770989423)
+Elapsed time for make command: 00:00:00 (0)
+Output from make 'specmake  clean > make.out 2> make.err':
+del /q  perlbmk perlbmk.exe *.obj  core *.err *.out
+C:\Users\alumno\Desktop\noob-code\UA\year-2\AC\Fase2\speccpu2000\benchspec\CINT2000\253.perlbmk\run\00000002\make.err
+C:\Users\alumno\Desktop\noob-code\UA\year-2\AC\Fase2\speccpu2000\benchspec\CINT2000\253.perlbmk\run\00000002\make.out
+Error from make 'specmake  clean > make.out 2> make.err':
+El proceso no tiene acceso al archivo porque est  siendo utilizado por otro proceso.
+El proceso no tiene acceso al archivo porque est  siendo utilizado por otro proceso.
+Issuing make command 'specmake  build > make.out 2> make.err'
+Start make command: Fri Feb 13 14:30:23 2026 (1770989423)
+Stop make command: Fri Feb 13 14:30:28 2026 (1770989428)
+Elapsed time for make command: 00:00:05 (5)
+Output from make 'specmake  build > make.out 2> make.err':
+cl -c -Foav.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  av.c
+av.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fobyterun.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  byterun.c
+byterun.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fodeb.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  deb.c
+deb.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fodoio.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  doio.c
+doio.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fodoop.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  doop.c
+doop.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fodump.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  dump.c
+dump.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Foebcdic.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  ebcdic.c
+ebcdic.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fofake_dyna.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  fake_dyna.c
+fake_dyna.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Foglobals.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  globals.c
+globals.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fogv.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  gv.c
+gv.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fohv.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  hv.c
+hv.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fomg.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  mg.c
+mg.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Foop.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  op.c
+op.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Foperl.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  perl.c
+perl.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Foperlio.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  perlio.c
+perlio.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Foperly.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  perly.c
+perly.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fopp.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  pp.c
+pp.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fopp_ctl.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  pp_ctl.c
+pp_ctl.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fopp_hot.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  pp_hot.c
+pp_hot.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fopp_sys.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  pp_sys.c
+pp_sys.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+pp_sys.c(829): warning C4133: 'funci¢n': tipos incompatibles, de 'int *' a 'Perl_fd_set *'
+cl -c -Foregcomp.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  regcomp.c
+regcomp.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Foregexec.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  regexec.c
+regexec.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Forun.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  run.c
+run.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Foscope.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  scope.c
+scope.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fosv.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  sv.c
+sv.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fotaint.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  taint.c
+taint.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fotoke.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  toke.c
+toke.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Founiversal.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  universal.c
+universal.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Foutil.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  util.c
+util.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -FoMD5.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  MD5.c
+MD5.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fomd5c.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  md5c.c
+md5c.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Font_perlmain.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  nt_perlmain.c
+nt_perlmain.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Fowin32.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  win32.c
+win32.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+win32.c(2073): warning C4047: 'return': 'char *' es distinto en los niveles de direccionamiento indirecto de 'int'
+cl -c -Fowin32sck.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  win32sck.c
+win32sck.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl -c -Foperllib.obj  -DSPEC_CPU2000_NTOS -DPERLDLL /MT        -Iwin32 -I. -DWIN32 -D_CONSOLE    /Ox /GL /Op  perllib.c
+perllib.c
+win32\sys/socket.h(54): warning C4005: 'ENOTSOCK': redefinici¢n de macro
+C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt\errno.h(117): note: vea la definici¢n anterior de "ENOTSOCK"
+cl       /Ox /GL /Op  av.obj byterun.obj deb.obj doio.obj doop.obj dump.obj ebcdic.obj fake_dyna.obj globals.obj gv.obj hv.obj mg.obj op.obj perl.obj perlio.obj perly.obj pp.obj pp_ctl.obj pp_hot.obj pp_sys.obj regcomp.obj regexec.obj run.obj scope.obj sv.obj taint.obj toke.obj universal.obj util.obj MD5.obj md5c.obj nt_perlmain.obj win32.obj win32sck.obj perllib.obj advapi32.lib wsock32.lib    -Feperlbmk
+Microsoft (R) Incremental Linker Version 14.44.35216.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+/ltcg 
+/out:perlbmk.exe 
+av.obj 
+byterun.obj 
+deb.obj 
+doio.obj 
+doop.obj 
+dump.obj 
+ebcdic.obj 
+fake_dyna.obj 
+globals.obj 
+gv.obj 
+hv.obj 
+mg.obj 
+op.obj 
+perl.obj 
+perlio.obj 
+perly.obj 
+pp.obj 
+pp_ctl.obj 
+pp_hot.obj 
+pp_sys.obj 
+regcomp.obj 
+regexec.obj 
+run.obj 
+scope.obj 
+sv.obj 
+taint.obj 
+toke.obj 
+universal.obj 
+util.obj 
+MD5.obj 
+md5c.obj 
+nt_perlmain.obj 
+win32.obj 
+win32sck.obj 
+perllib.obj 
+advapi32.lib 
+wsock32.lib 
+win32.obj : error LNK2001: s¡mbolo externo __set_osfhnd sin resolver
+win32.obj : error LNK2001: s¡mbolo externo __unlock_fhandle sin resolver
+perlbmk.exe : fatal error LNK1120: 2 externos sin resolver
+Error from make 'specmake  build > make.out 2> make.err':
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+Compilador de optimizaci¢n de C/C++ de Microsoft (R) versi¢n 19.44.35216 para x86
+(C) Microsoft Corporation. Todos los derechos reservados.
+
+cl : L¡nea de comandos warning D9002 : se omite la opci¢n desconocida '/Op'
+specmake: *** [perlbmk] Error 2
+Error with make 'specmake  build > make.out 2> make.err': check file 'C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/253.perlbmk/run/00000002/make.err'
+  Error with make!
+  Compile for '253.perlbmk' ended at:Fri Feb 13 14:30:28 2026 (1770989428)
+  Elapsed compile for '253.perlbmk': 00:00:05 (5)
+*** Error building 253.perlbmk
+  Up to date 254.gap ref base vc7.x87.exe default
+  Up to date 255.vortex ref base vc7.x87.exe default
+  Up to date 256.bzip2 ref base vc7.x87.exe default
+  Up to date 300.twolf ref base vc7.x87.exe default
+Setting Up Run Directories
+  Setting up 164.gzip ref base vc7.x87.exe default: created
+  Setting up 175.vpr ref base vc7.x87.exe default: created
+  Setting up 176.gcc ref base vc7.x87.exe default: created
+  Setting up 181.mcf ref base vc7.x87.exe default: created
+  Setting up 186.crafty ref base vc7.x87.exe default: created
+  Setting up 197.parser ref base vc7.x87.exe default: created
+  Setting up 252.eon ref base vc7.x87.exe default: created
+  Setting up 254.gap ref base vc7.x87.exe default: created
+  Setting up 255.vortex ref base vc7.x87.exe default: created
+  Setting up 256.bzip2 ref base vc7.x87.exe default: created
+  Setting up 300.twolf ref base vc7.x87.exe default: created
+
+-----------------------------------
+Running Benchmarks
+
+-----------------------------------
+  Running 164.gzip ref base vc7.x87.exe default
+Commands to run: 
+    -u C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004
+    -o input.source.out -e input.source.err ../00000004/gzip_base.vc7.x87.exe input.source 60
+    -o input.log.out -e input.log.err ../00000004/gzip_base.vc7.x87.exe input.log 60
+    -o input.graphic.out -e input.graphic.err ../00000004/gzip_base.vc7.x87.exe input.graphic 60
+    -o input.random.out -e input.random.err ../00000004/gzip_base.vc7.x87.exe input.random 60
+    -o input.program.out -e input.program.err ../00000004/gzip_base.vc7.x87.exe input.program 60
+Specinvoke: C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/bin/specinvoke -d C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004 -e speccmds.err -o speccmds.out -f speccmds.cmd
+comparing files in 'C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004'
+comparing 'desktop.ini' with cw='', abstol='', reltol='',obiwan='',skiptol=''
+comparing 'input.graphic.out' with cw='', abstol='', reltol='',obiwan='',skiptol=''
+comparing 'input.log.out' with cw='', abstol='', reltol='',obiwan='',skiptol=''
+comparing 'input.program.out' with cw='', abstol='', reltol='',obiwan='',skiptol=''
+comparing 'input.random.out' with cw='', abstol='', reltol='',obiwan='',skiptol=''
+comparing 'input.source.out' with cw='', abstol='', reltol='',obiwan='',skiptol=''
+Specinvoke: C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/bin/specinvoke -E -d C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004 -c 1 -e compare.err -o compare.out -f compare.cmd
+*** Miscompare of desktop.ini, see C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004/desktop.ini.mis
+Couldn't open 'desktop.ini': No such file or directory
+Benchmark Times:
+  Start:    Fri Feb 13 14:30:33 2026 (1770989433)
+  Stop:     Fri Feb 13 14:31:21 2026 (1770989481)
+  Elapsed:  00:00:48 (48)
+  Reported: 47 786000000 47.786
+ Error 164.gzip ratio=2929.73, runtime=47.786000
+  Running 164.gzip ref base vc7.x87.exe default
+Commands to run: 
+    -u C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004
+    -o input.source.out -e input.source.err ../00000004/gzip_base.vc7.x87.exe input.source 60
+    -o input.log.out -e input.log.err ../00000004/gzip_base.vc7.x87.exe input.log 60
+    -o input.graphic.out -e input.graphic.err ../00000004/gzip_base.vc7.x87.exe input.graphic 60
+    -o input.random.out -e input.random.err ../00000004/gzip_base.vc7.x87.exe input.random 60
+    -o input.program.out -e input.program.err ../00000004/gzip_base.vc7.x87.exe input.program 60
+Specinvoke: C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/bin/specinvoke -d C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004 -e speccmds.err -o speccmds.out -f speccmds.cmd
+comparing files in 'C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004'
+comparing 'desktop.ini' with cw='', abstol='', reltol='',obiwan='',skiptol=''
+comparing 'input.graphic.out' with cw='', abstol='', reltol='',obiwan='',skiptol=''
+comparing 'input.log.out' with cw='', abstol='', reltol='',obiwan='',skiptol=''
+comparing 'input.program.out' with cw='', abstol='', reltol='',obiwan='',skiptol=''
+comparing 'input.random.out' with cw='', abstol='', reltol='',obiwan='',skiptol=''
+comparing 'input.source.out' with cw='', abstol='', reltol='',obiwan='',skiptol=''
+Specinvoke: C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/bin/specinvoke -E -d C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004 -c 1 -e compare.err -o compare.out -f compare.cmd
+*** Miscompare of desktop.ini, see C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004/desktop.ini.mis
+Couldn't open 'desktop.ini': No such file or directory
+Benchmark Times:
+  Start:    Fri Feb 13 14:31:22 2026 (1770989482)
+  Stop:     Fri Feb 13 14:32:09 2026 (1770989529)
+  Elapsed:  00:00:47 (47)
+  Reported: 47 605000000 47.605
+ Error 164.gzip ratio=2940.87, runtime=47.605000
+  Running 164.gzip ref base vc7.x87.exe default
+Commands to run: 
+    -u C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004
+    -o input.source.out -e input.source.err ../00000004/gzip_base.vc7.x87.exe input.source 60
+    -o input.log.out -e input.log.err ../00000004/gzip_base.vc7.x87.exe input.log 60
+    -o input.graphic.out -e input.graphic.err ../00000004/gzip_base.vc7.x87.exe input.graphic 60
+    -o input.random.out -e input.random.err ../00000004/gzip_base.vc7.x87.exe input.random 60
+    -o input.program.out -e input.program.err ../00000004/gzip_base.vc7.x87.exe input.program 60
+Specinvoke: C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/bin/specinvoke -d C:/Users/alumno/Desktop/noob-code/UA/year-2/AC/Fase2/speccpu2000/benchspec/CINT2000/164.gzip/run/00000004 -e speccmds.err -o speccmds.out -f speccmds.cmd

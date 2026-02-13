@@ -1,0 +1,2 @@
+-u C:/speccpu2000/benchspec/CINT2000/164.gzip/run/00000002
+-o input.compressed.out -e input.compressed.err ../00000002/gzip_base.vc7.x87.exe input.compressed 2
