@@ -2,7 +2,7 @@
 // Created by julianhinojosagil on 1/2/26.
 //
 
-#include "../include/TComplejo.h"
+#include "../include/tcomplejo.h"
 #include <iostream>
 #include <cmath>
 

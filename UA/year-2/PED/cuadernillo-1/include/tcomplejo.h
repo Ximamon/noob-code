@@ -4,7 +4,7 @@
 
 #ifndef TCOMPLEJO_H
 #define TCOMPLEJO_H
-#include <iosfwd>
+#include <iostream>
 
 class TComplejo {
 public:

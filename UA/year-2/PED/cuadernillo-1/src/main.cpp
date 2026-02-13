@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../include/TComplejo.h"
+#include "../include/tcomplejo.h"
 
 using namespace std;
 
