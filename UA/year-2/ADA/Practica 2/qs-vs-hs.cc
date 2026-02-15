@@ -1,6 +1,7 @@
+// Julian Hinojosa Gil, 48795869N
 /*
-ADA. 2025-26
-Practice 2: "Empirical analysis by means of program-steps account of two sorting algorithms: Middle-Quicksort and Heapsort."
+    ADA. 2025-26
+    Practice 2: "Empirical analysis by means of program-steps account of two sorting algorithms: Middle-Quicksort and Heapsort."
 */
 #include <unistd.h>
 #include <iostream>
@@ -18,24 +19,34 @@ using namespace std;
 // subarrays (left and right of the pivot).
 //--------------------------------------------------------------
 
-void middle_QuickSort(int *v, long left, long right) {
+void middle_QuickSort(int *v, long left, long right, long long &pasos) {
     long i, j;
     int pivot;
+
+    pasos++;
     if (left < right) {
         i = left; j = right;
         pivot = v[(i + j) / 2];
+        pasos++;
         // pivot based partitioning:
         do {
             while (v[i] < pivot) i++;
+            pasos++;
             while (v[j] > pivot) j--;
+            pasos++;
+            pasos++;
             if (i <= j) {
                 swap(v[i], v[j]);
                 i++; j--;
+                pasos++;
             }
+            pasos++;
         } while (i <= j);
         // Repeat for each non-empty subarray:
-        if (left < j) middle_QuickSort(v, left, j);
-        if (i < right) middle_QuickSort(v, i, right);
+        pasos++;
+        if (left < j) middle_QuickSort(v, left, j, pasos);
+        pasos++;
+        if (i < right) middle_QuickSort(v, i, right, pasos);
     }
 }
 
@@ -99,4 +110,82 @@ void heapSort(int *v, size_t n)
         sink(v, i, 0);
         // The process ends when the heap has only one element, which is the smallest and remains at the beginning of the array.
     }
+}
+
+int main(void) {
+    srand(0); // Semilla fija según la plantilla
+
+    cout << "# QUICKSORT VERSUS HEAPSORT." << endl;
+    cout << "# Average processing Msteps (millions of program steps)" << endl;
+    cout << "# Number of samples (arrays of integer): 30" << endl;
+    cout << "#\t\t RANDOM ARRAYS \t\t SORTED \t REVERSE" << endl;
+    cout << "# Size \t\t QuickSort \t\t QuickSort \t QuickSort" << endl;
+    cout << "==================================================================" << endl;
+
+    // Bucle para los tamaños: 2^15 a 2^20
+    for (int exp = 15; exp <= 20; exp++) {
+        size_t n = pow(2, exp);
+        
+        // --- ANÁLISIS QUICKSORT ALEATORIO ---
+        // Debemos hacer media de 30 muestras [cite: 10]
+        long long totalPasosAcumulados = 0;
+        int repeticiones = 30;
+
+        for (int r = 0; r < repeticiones; r++) {
+            // 1. Crear vector
+            int *v = new int[n];
+            
+            // 2. Rellenar aleatorio
+            for (size_t k = 0; k < n; k++) {
+                v[k] = rand(); 
+            }
+
+            // 3. Ordenar y contar
+            long long pasosQS = 0;
+            middle_QuickSort(v, 0, n - 1, pasosQS);
+            
+            // 4. Acumular
+            totalPasosAcumulados += pasosQS;
+
+            // 5. Liberar memoria
+            delete[] v;
+        }
+
+        // Calcular media
+        double mediaPasos = (double)totalPasosAcumulados / repeticiones;
+        double MStepsRandom = mediaPasos / 1000000.0; // Convertir a Millones 
+
+
+        // --- ANÁLISIS QUICKSORT ORDENADO (CRECIENTE) ---
+        // Solo 1 muestra necesaria según enunciado [cite: 12]
+        int *vSorted = new int[n];
+        // Crear vector ya ordenado (0, 1, 2...)
+        for (size_t k = 0; k < n; k++) vSorted[k] = k;
+        
+        long long pasosSorted = 0;
+        middle_QuickSort(vSorted, 0, n - 1, pasosSorted);
+        double MStepsSorted = pasosSorted / 1000000.0;
+        delete[] vSorted;
+
+
+        // --- ANÁLISIS QUICKSORT INVERSO (DECRECIENTE) ---
+        // Solo 1 muestra necesaria [cite: 12]
+        int *vReverse = new int[n];
+        // Crear vector inverso (n, n-1, ...)
+        for (size_t k = 0; k < n; k++) vReverse[k] = n - k;
+        
+        long long pasosReverse = 0;
+        middle_QuickSort(vReverse, 0, n - 1, pasosReverse);
+        double MStepsReverse = pasosReverse / 1000000.0;
+        delete[] vReverse;
+
+
+        // IMPRIMIR FILA DE LA TABLA
+        cout << n << "\t\t " 
+             << MStepsRandom << "\t\t " 
+             << MStepsSorted << "\t\t " 
+             << MStepsReverse << endl;
+    }
+
+    return 0;
 }
