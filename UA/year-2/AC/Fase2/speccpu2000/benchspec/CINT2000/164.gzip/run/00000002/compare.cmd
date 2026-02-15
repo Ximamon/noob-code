@@ -1,1 +1,0 @@
--c C:/speccpu2000/benchspec/CINT2000/164.gzip/run/00000002 -o input.compressed.out.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10 C:/speccpu2000/benchspec/CINT2000/164.gzip/data/test/output/input.compressed.out input.compressed.out

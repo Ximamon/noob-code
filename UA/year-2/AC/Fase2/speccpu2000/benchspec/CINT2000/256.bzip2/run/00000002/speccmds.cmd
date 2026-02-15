@@ -1,4 +1,0 @@
--u C:/speccpu2000/benchspec/CINT2000/256.bzip2/run/00000002
--o input.source.out -e input.source.err ../00000002/bzip2_base.vc7.x87.exe input.source 58
--o input.graphic.out -e input.graphic.err ../00000002/bzip2_base.vc7.x87.exe input.graphic 58
--o input.program.out -e input.program.err ../00000002/bzip2_base.vc7.x87.exe input.program 58

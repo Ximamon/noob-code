@@ -1,8 +1,0 @@
--c C:/speccpu2000/benchspec/CINT2000/300.twolf/run/00000002 -o ref.out.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10  -o C:/speccpu2000/benchspec/CINT2000/300.twolf/data/ref/output/ref.out ref.out
--c C:/speccpu2000/benchspec/CINT2000/300.twolf/run/00000002 -o ref.pin.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10  -o C:/speccpu2000/benchspec/CINT2000/300.twolf/data/ref/output/ref.pin ref.pin
--c C:/speccpu2000/benchspec/CINT2000/300.twolf/run/00000002 -o ref.pl1.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10  -o C:/speccpu2000/benchspec/CINT2000/300.twolf/data/ref/output/ref.pl1 ref.pl1
--c C:/speccpu2000/benchspec/CINT2000/300.twolf/run/00000002 -o ref.pl2.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10  -o C:/speccpu2000/benchspec/CINT2000/300.twolf/data/ref/output/ref.pl2 ref.pl2
--c C:/speccpu2000/benchspec/CINT2000/300.twolf/run/00000002 -o ref.sav.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10  -o C:/speccpu2000/benchspec/CINT2000/300.twolf/data/ref/output/ref.sav ref.sav
--c C:/speccpu2000/benchspec/CINT2000/300.twolf/run/00000002 -o ref.stdout.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10  -o C:/speccpu2000/benchspec/CINT2000/300.twolf/data/ref/output/ref.stdout ref.stdout
--c C:/speccpu2000/benchspec/CINT2000/300.twolf/run/00000002 -o ref.sv2.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10  -o C:/speccpu2000/benchspec/CINT2000/300.twolf/data/ref/output/ref.sv2 ref.sv2
--c C:/speccpu2000/benchspec/CINT2000/300.twolf/run/00000002 -o ref.twf.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10  -o C:/speccpu2000/benchspec/CINT2000/300.twolf/data/ref/output/ref.twf ref.twf

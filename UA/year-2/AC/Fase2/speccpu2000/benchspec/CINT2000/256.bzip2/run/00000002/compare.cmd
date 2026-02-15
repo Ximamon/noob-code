@@ -1,3 +1,0 @@
--c C:/speccpu2000/benchspec/CINT2000/256.bzip2/run/00000002 -o input.graphic.out.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10 C:/speccpu2000/benchspec/CINT2000/256.bzip2/data/ref/output/input.graphic.out input.graphic.out
--c C:/speccpu2000/benchspec/CINT2000/256.bzip2/run/00000002 -o input.program.out.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10 C:/speccpu2000/benchspec/CINT2000/256.bzip2/data/ref/output/input.program.out input.program.out
--c C:/speccpu2000/benchspec/CINT2000/256.bzip2/run/00000002 -o input.source.out.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10 C:/speccpu2000/benchspec/CINT2000/256.bzip2/data/ref/output/input.source.out input.source.out

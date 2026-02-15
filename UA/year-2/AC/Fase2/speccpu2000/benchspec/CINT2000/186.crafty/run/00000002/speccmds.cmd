@@ -1,2 +1,0 @@
--u C:/speccpu2000/benchspec/CINT2000/186.crafty/run/00000002
--i crafty.in -o crafty.out -e crafty.err ../00000002/crafty_base.vc7.x87.exe

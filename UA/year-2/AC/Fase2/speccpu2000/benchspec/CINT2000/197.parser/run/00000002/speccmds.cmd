@@ -1,2 +1,0 @@
--u C:/speccpu2000/benchspec/CINT2000/197.parser/run/00000002
--i ref.in -o ref.out -e ref.err ../00000002/parser_base.vc7.x87.exe 2.1.dict -batch

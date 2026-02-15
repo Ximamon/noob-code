@@ -1,1 +1,0 @@
--c C:/speccpu2000/benchspec/CINT2000/186.crafty/run/00000002 -o crafty.out.cmp C:/speccpu2000/bin/specdiff.bat -m -l 10 C:/speccpu2000/benchspec/CINT2000/186.crafty/data/ref/output/crafty.out crafty.out
