@@ -18,7 +18,6 @@ set key left top box
 
 plot "qs-vs-hs.Msteps" using 1:2 with points pt 7 ps 1.5 lc rgb "blue" title "Random Arrays"
 
-
 ##########################################################################
 #Testing different analytical functions to determine which best fits:
 
