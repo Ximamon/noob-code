@@ -30,16 +30,19 @@ void middle_QuickSort(int *v, long left, long right, long long &pasos) {
         pasos++;
         // pivot based partitioning:
         do {
-            while (v[i] < pivot) i++;
             pasos++;
-            while (v[j] > pivot) j--;
+            while (v[i] < pivot) i++, pasos++;
+            
             pasos++;
+            while (v[j] > pivot) j--, pasos++;
+            
             pasos++;
             if (i <= j) {
                 swap(v[i], v[j]);
                 i++; j--;
                 pasos++;
             }
+            
             pasos++;
         } while (i <= j);
         // Repeat for each non-empty subarray:
@@ -50,8 +53,7 @@ void middle_QuickSort(int *v, long left, long right, long long &pasos) {
     }
 }
 
-//--------------------------------------------------------------
-// Heapsort:
+//-------Heapsort---------------------------------------------
 // The algorithm works by repeatedly selecting the largest remaining element
 // and placing it at the end of the vector in its correct position.
 //
