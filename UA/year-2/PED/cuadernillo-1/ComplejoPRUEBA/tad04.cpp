@@ -2,7 +2,7 @@
 
 using namespace std;
 
-#include "tcomplejo.h"
+#include "../include/tcomplejo.h"
 
 int
 main(void)
