@@ -1,17 +1,15 @@
 CC = g++ # Version: 13.2.0
 FLAGS = -g -O3 -Wall -Wextra -std=c++11
-EXEC = main
+EXEC = tad
 
 # Directorios
 SRC_DIR = src
 LIB_DIR = lib
 BUILD_DIR = build
-TESTS_DIR = tests
 
 # Archivos fuente y objetos
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 LIBS = $(wildcard $(LIB_DIR)/*.cpp)
-TESTS = $(wildcard $(TESTS_DIR)/*.cpp)
 # Los objetos se generan en el directorio de build
 OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS)) \
 	   $(patsubst $(LIB_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(LIBS))
@@ -37,8 +35,12 @@ $(BUILD_DIR):
 run: $(EXEC)
 	./$(EXEC)
 
+# Regla para ejecutar los tests
+test:
+	./evalua.sh
+
 # Regla para limpiar los archivos generados
 clean:
-	rm -rf $(BUILD_DIR) $(EXEC)
+	rm -rf $(BUILD_DIR) $(EXEC) ComplejoPRUEBA/*.out src/tad.cpp
 
 .PHONY: clean
