@@ -79,12 +79,12 @@ TComplejo TComplejo::operator* (double d) const {
 
 // ------------------- Comparacion -------------------
 
-bool TComplejo::operator==(const TComplejo &other) const {
+bool TComplejo::operator== (const TComplejo &other) const {
     return (this->re == other.re && this->im == other.im);
 }
 
-bool TComplejo::operator!=(const TComplejo &other) const {
-    return (this->re != other.re || this->im != other.im);
+bool TComplejo::operator!= (const TComplejo &other) const {
+    return !(*this == other);
 }
 
 // ---------------------------------------------------
