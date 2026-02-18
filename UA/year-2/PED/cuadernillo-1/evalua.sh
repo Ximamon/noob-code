@@ -11,7 +11,7 @@ for FILE in *PRUEBA/tad*.cpp ; do
 	make
 	./tad > $FILE.out
 	diff -b -B -i $FILE.out $FILE.sal
-	if [ "$?" == "0" ]; then
+	if [ "$?" = "0" ]; then
 		echo "OK"
 	else
 		echo "ERROR"

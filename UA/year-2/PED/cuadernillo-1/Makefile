@@ -2,7 +2,7 @@
 # Configuración del Compilador
 # -----------------------------------------------------------------------------
 CC = g++ # Version: 13.2.0
-FLAGS = -g -O3 -Wall -Wextra -std=c++11
+FLAGS =-g -O3 -Wall -Wextra -std=c++11 -I $(INCLUDE_DIR)
 EXEC = main
 # Cambiar a "tad" si se quiere ejecutar test
 
@@ -12,13 +12,13 @@ EXEC = main
 SRC_DIR = src
 LIB_DIR = lib
 BUILD_DIR = build
+INCLUDE_DIR = include
 
 # Búsqueda de fuentes
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 LIBS = $(wildcard $(LIB_DIR)/*.cpp)
 
 # Generación de la lista de objetos
-# Usamos += para que sea más fácil de leer que una línea gigante
 OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS)) \
 	   $(patsubst $(LIB_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(LIBS))
 
@@ -36,7 +36,6 @@ run: $(EXEC)
 # Ejecutar tests y limpiar
 test:
 	./evalua.sh
-	$(MAKE) clean
 
 # Limpieza
 clean:
@@ -48,17 +47,17 @@ clean:
 
 # Linkeo final (Creación del ejecutable)
 $(EXEC): $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+	$(CC) $(FLAGS) $^ -o $@
 
 # Compilación de objetos desde SRC
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CC) $(FLAGS) -c $< -o $@
 
 # Compilación de objetos desde LIB
 $(BUILD_DIR)/%.o: $(LIB_DIR)/%.cpp | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CC) $(FLAGS) -c $< -o $@
 
-# Crear directorio de build (silencioso)
+# Crear directorio de build
 $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)
 
