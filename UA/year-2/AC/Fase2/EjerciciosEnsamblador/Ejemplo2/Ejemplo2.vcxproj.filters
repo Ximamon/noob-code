@@ -15,8 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Bubble_asm.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="bubblesort.asm">
+      <Filter>Archivos de origen</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

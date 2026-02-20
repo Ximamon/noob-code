@@ -1,31 +1,17 @@
 // Ensamblador en línea. Procesador: x86 (32 bits)
-#include <stdio.h>
-int suma(int a, int b);
-int main(void)
-{
-	int x = 0;
-	int y = 0;
+#include <iostream>
 
-	printf("CALCULO DE LA SUMA DE DOS NUMEROS\n");
-	printf_s("\n");
-	printf_s("Primer sumando: ");
-	scanf_s("%d", &x);
-	printf_s("Segundo sumando: ");
-	scanf_s("%d", &y);
-	getchar();
-	printf_s("Resultado de la suma de %d mas %d: %d\n", x, y, suma(x, y));
-	printf_s("\n");
-	printf_s("Pulse <Return> para finalizar...");
-	getchar();
-}
+// Le decimos a C++: "Confía en mí, esta función existe en otro archivo y está compilada al estilo C"
+extern "C" int sumar(int a, int b);
 
-int suma(int a, int b)
-{
-	__asm
-	{
-		mov eax, a; Almacena en EAX el primer argumento
-		mov ecx, b; Almacena en ECX el segundo argumento
-		add eax, ecx; Suma de los operandos, deja el resultado en eax
-		// Devuelve el resultado de EAX
-	}
+int main() {
+    int numero1 = 15;
+    int numero2 = 25;
+
+    // Llamamos a la función escrita en ensamblador
+    int resultado = sumar(numero1, numero2);
+
+    std::cout << "La suma calculada en x86 es: " << resultado << std::endl;
+
+    return 0;
 }
