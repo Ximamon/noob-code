@@ -1,13 +1,14 @@
-.386
-.model flat, c
-.code
+.386                ; Especificamos que queremos usar instrucciones de la arquitectura 80386
+.model flat, c      ; Especificamos el modelo de memoria (flat) y el tipo de llamada (C)
+.code               ; El segmento de código donde se colocarán las instrucciones ejecutables
 
-PUBLIC bubblesort
+PUBLIC bubblesort   ; Declaramos la función como pública para que pueda ser llamada desde C++
 
-bubblesort PROC
+; void bubblesort(int* arr, int size);
+bubblesort PROC ; Declaramos el inicio del procedimiento de ordenamiento burbuja
     ; --- Prólogo de la función ---
-    PUSH EBP
-    MOV EBP, ESP
+    PUSH EBP        
+    MOV EBP, ESP    
 
     ; --- Carga de parámetros ---
     MOV ECX, [EBP + 8]   ; ECX = Dirección base del arreglo
