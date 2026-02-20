@@ -9,8 +9,7 @@
 
 using namespace std;
 
-//--------------------------------------------------------------
-// Middle-Quicksort:
+//-----------Middle-Quicksort------------------------------------
 // The algorithm selects the middle element of the array as the "pivot".
 // In a process called "partitioning", it rearranges the elements so that
 // all elements smaller than the pivot are placed to its left, and
@@ -33,22 +32,16 @@ void middle_QuickSort(int *v, long left, long right, long long &pasos) {
             pasos++;
             while (v[i] < pivot) i++, pasos++;
             
-            pasos++;
             while (v[j] > pivot) j--, pasos++;
             
-            pasos++;
             if (i <= j) {
                 swap(v[i], v[j]);
                 i++; j--;
-                pasos++;
             }
             
-            pasos++;
         } while (i <= j);
         // Repeat for each non-empty subarray:
-        pasos++;
         if (left < j) middle_QuickSort(v, left, j, pasos);
-        pasos++;
         if (i < right) middle_QuickSort(v, i, right, pasos);
     }
 }
@@ -70,6 +63,7 @@ void sink(int *v, size_t n, size_t i)
     size_t l, r; // indices of left and right childs
 
     do {
+        // pasos
         largest = i;  // Initialize largest as root
         l = 2 * i + 1;  // left = 2*i + 1
         r = 2 * i + 2;  // right = 2*i + 2
