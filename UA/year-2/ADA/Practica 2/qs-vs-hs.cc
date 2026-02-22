@@ -8,7 +8,16 @@
 #include <iostream>
 #include <iomanip>
 #include <sys/utsname.h>
-#include <sys/sysctl.h>
+#include <cstdint> 
+#include <fstream> // <- NUEVO: Para leer archivos
+#include <string>  // <- NUEVO: Para manejar textos
+
+#ifdef __APPLE__
+    #include <sys/sysctl.h>
+#elif defined(__linux__)
+    #include <unistd.h>
+    #include <sys/sysinfo.h>
+#endif
 #include <math.h>
 
 using namespace std;
@@ -20,6 +29,8 @@ void printSystemInfo() {
         cout << "#System: " << u.sysname << " " << u.release << " (" << u.machine << ")" << endl;
     }
 
+#ifdef __APPLE__
+    // --- CÓDIGO EXCLUSIVO PARA MAC ---
     char cpu[256];
     size_t size = sizeof(cpu);
     if (sysctlbyname("machdep.cpu.brand_string", &cpu, &size, nullptr, 0) == 0) {
@@ -44,8 +55,44 @@ void printSystemInfo() {
              << (double)mem / (1024.0 * 1024.0 * 1024.0) << endl;
     }
 
-    cout << "#" << endl;
+#elif defined(__linux__)
+    // --- CÓDIGO EXCLUSIVO PARA LINUX (Ubuntu) ---
+    
+    // 1. Leer el modelo de CPU desde /proc/cpuinfo
+    ifstream cpuinfo("/proc/cpuinfo");
+    string line;
+    if (cpuinfo.is_open()) {
+        while (getline(cpuinfo, line)) {
+            // Buscamos la línea que empieza por "model name"
+            if (line.substr(0, 10) == "model name") {
+                size_t pos = line.find(':');
+                if (pos != string::npos) {
+                    // Extraemos lo que hay después de los dos puntos (saltando el espacio)
+                    cout << "#CPU: " << line.substr(pos + 2) << endl;
+                    break; // Salimos del bucle al encontrar el primero
+                }
+            }
+        }
+        cpuinfo.close();
+    }
+
+    // 2. Núcleos lógicos
+    long logical = sysconf(_SC_NPROCESSORS_ONLN);
+    if (logical > 0) {
+        cout << "#Logical cores: " << logical << endl;
+    }
+
+    // 3. Memoria RAM
+    long paginas = sysconf(_SC_PHYS_PAGES);
+    long tamano_pagina = sysconf(_SC_PAGE_SIZE);
+    if (paginas > 0 && tamano_pagina > 0) {
+        uint64_t mem = (uint64_t)paginas * (uint64_t)tamano_pagina;
+        cout << "#RAM (GiB): " << fixed << setprecision(2)
+             << (double)mem / (1024.0 * 1024.0 * 1024.0) << endl;
+    }
+#endif
 }
+
 
 //-----------Middle-Quicksort------------------------------------
 // The algorithm selects the middle element of the array as the "pivot".
