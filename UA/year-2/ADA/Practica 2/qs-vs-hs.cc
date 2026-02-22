@@ -1,13 +1,51 @@
 // Julian Hinojosa Gil, 48795869N
+
 /*
     ADA. 2025-26
     Practice 2: "Empirical analysis by means of program-steps account of two sorting algorithms: Middle-Quicksort and Heapsort."
 */
 #include <unistd.h>
 #include <iostream>
+#include <iomanip>
+#include <sys/utsname.h>
+#include <sys/sysctl.h>
 #include <math.h>
 
 using namespace std;
+
+// Función para imprimir información del sistema (opcional, pero útil para contextualizar los resultados)
+void printSystemInfo() {
+    struct utsname u;
+    if (uname(&u) == 0) {
+        cout << "#System: " << u.sysname << " " << u.release << " (" << u.machine << ")" << endl;
+    }
+
+    char cpu[256];
+    size_t size = sizeof(cpu);
+    if (sysctlbyname("machdep.cpu.brand_string", &cpu, &size, nullptr, 0) == 0) {
+        cout << "#CPU: " << cpu << endl;
+    }
+
+    int physical = 0, logical = 0;
+    size = sizeof(physical);
+    if (sysctlbyname("hw.physicalcpu", &physical, &size, nullptr, 0) == 0) {
+        cout << "#Physical cores: " << physical << endl;
+    }
+
+    size = sizeof(logical);
+    if (sysctlbyname("hw.logicalcpu", &logical, &size, nullptr, 0) == 0) {
+        cout << "#Logical cores: " << logical << endl;
+    }
+
+    uint64_t mem = 0;
+    size = sizeof(mem);
+    if (sysctlbyname("hw.memsize", &mem, &size, nullptr, 0) == 0) {
+        cout << "#RAM (GiB): " << fixed << setprecision(2)
+             << (double)mem / (1024.0 * 1024.0 * 1024.0) << endl;
+    }
+
+    cout << "#" << endl;
+}
 
 //-----------Middle-Quicksort------------------------------------
 // The algorithm selects the middle element of the array as the "pivot".
@@ -18,7 +56,7 @@ using namespace std;
 // subarrays (left and right of the pivot).
 //--------------------------------------------------------------
 
-void middle_QuickSort(int *v, long left, long right, long long &pasos) {
+void middle_QuickSort(int *v, long left, long right, size_t &pasos) {
     long i, j;
     int pivot;
 
@@ -55,7 +93,7 @@ void middle_QuickSort(int *v, long left, long right, long long &pasos) {
 // The sink procedure is used for heap construction (or reconstruction).
 //--------------------------------------------------------------
 
-void sink(int *v, size_t n, size_t i)
+void sink(int *v, size_t n, size_t i, size_t &pasos)
 // Sink an element (indexed by i) in a tree to maintain the heap property.
 // n is the size of the heap.
 {
@@ -63,7 +101,7 @@ void sink(int *v, size_t n, size_t i)
     size_t l, r; // indices of left and right childs
 
     do {
-        // pasos
+        pasos++;
         largest = i;  // Initialize largest as root
         l = 2 * i + 1;  // left = 2*i + 1
         r = 2 * i + 2;  // right = 2*i + 2
@@ -85,14 +123,13 @@ void sink(int *v, size_t n, size_t i)
     } while (true);
 }
 
-//--------------------------------------------------------------
-// Heapsort algorithm (ascending sorting)
-void heapSort(int *v, size_t n)
+//--------Heapsort algorithm (ascending sorting)----------------
+void heapSort(int *v, size_t n, size_t &pasos)
 {
     // Build a max-heap with the input array ("heapify"):
     // Starting from the last non-leaf node (right to left), sink each element to construct the heap.
     for (size_t i = n / 2 - 1; true; i--) {
-        sink(v, n, i);
+        sink(v, n, i, pasos);
         if (i == 0) break; // As size_t is an unsigned type
     }
 
@@ -103,84 +140,104 @@ void heapSort(int *v, size_t n)
         swap(v[0], v[i]);
         // Rebuild the heap by sinking the new root element.
         // Note that the heap size is reduced by one in each iteration (so the element moved to the end stays there)
-        sink(v, i, 0);
+        sink(v, i, 0, pasos);
         // The process ends when the heap has only one element, which is the smallest and remains at the beginning of the array.
     }
 }
 
 int main(void) {
     srand(0); // Semilla fija según la plantilla
+    printSystemInfo(); // Imprimir información del sistema
 
-    cout << "# QUICKSORT VERSUS HEAPSORT." << endl;
-    cout << "# Average processing Msteps (millions of program steps)" << endl;
-    cout << "# Number of samples (arrays of integer): 30" << endl;
-    cout << "#\t\t RANDOM ARRAYS \t\t SORTED \t REVERSE" << endl;
-    cout << "# Size \t\t QuickSort \t\t QuickSort \t QuickSort" << endl;
-    cout << "==================================================================" << endl;
+	cout << "#QUICKSORT VERSUS HEAPSORT." << endl;
+	cout << "#Average processing Msteps (millions of program steps)" << endl;
+	cout << "#Number of samples (arrays of integer): 30" << endl;
+	cout << "#                 RANDOM ARRAYS       SORTED ARRAYS     REVERSE SORTED ARRAYS" << endl;
+	cout << "#    Size     QuickSort  HeapSort  QuickSort  HeapSort  QuickSort   HeapSort" << endl;
+	cout << "============================================================================" << endl;
 
     // Bucle para los tamaños: 2^15 a 2^20
     for (int exp = 15; exp <= 20; exp++) {
         size_t n = pow(2, exp);
         
-        // --- ANÁLISIS QUICKSORT ALEATORIO ---
-        // Debemos hacer media de 30 muestras [cite: 10]
-        long long totalPasosAcumulados = 0;
-        int repeticiones = 30;
+        // Vector para Quicksort
+        int* v1 = new int[n];
+        // Vector para Heapsort
+        int* v2 = new int[n];
 
-        for (int r = 0; r < repeticiones; r++) {
-            // 1. Crear vector
-            int *v = new int[n];
-            
-            // 2. Rellenar aleatorio
-            for (size_t k = 0; k < n; k++) {
-                v[k] = rand(); 
+        
+
+        size_t pasosQuick = 0;
+        size_t pasosHeap = 0;
+
+        // --- ANÁLISIS VECTOR ALEATORIO ---
+        // 30 muestras para cada tamaño
+        for (int i = 0; i < 30; i++) {
+            for (size_t j = 0; j < n; j++) {
+                v1[j] = rand(); 
+                v2[j] = v1[j]; // Copiar el mismo vector para ambos algoritmos
             }
-
-            // 3. Ordenar y contar
-            long long pasosQS = 0;
-            middle_QuickSort(v, 0, n - 1, pasosQS);
             
-            // 4. Acumular
-            totalPasosAcumulados += pasosQS;
-
-            // 5. Liberar memoria
-            delete[] v;
+            size_t pasosQS = 0;
+            middle_QuickSort(v1, 0, n - 1, pasosQS);
+            size_t pasosHS = 0;
+            heapSort(v2, n, pasosHS);
+            
+            pasosQuick += pasosQS;
+            pasosHeap += pasosHS;
         }
 
         // Calcular media
-        double mediaPasos = (double)totalPasosAcumulados / repeticiones;
-        double MStepsRandom = mediaPasos / 1000000.0; // Convertir a Millones 
+        double mediaPasosQuickRandom = (double)pasosQuick / (30.0 * 1000000.0); // Media de pasos en millones
+        double mediaPasosHeapRandom = (double)pasosHeap / (30.0 * 1000000.0); // Media de pasos en millones
 
 
-        // --- ANÁLISIS QUICKSORT ORDENADO (CRECIENTE) ---
-        // Solo 1 muestra necesaria según enunciado [cite: 12]
-        int *vSorted = new int[n];
-        // Crear vector ya ordenado (0, 1, 2...)
-        for (size_t k = 0; k < n; k++) vSorted[k] = k;
+        // --- ANÁLISIS ORDENADO (CRECIENTE) ---
+        // Solo 1 muestra necesaria según enunciado y usando los mismos vectores que ya estan ordenados
         
-        long long pasosSorted = 0;
-        middle_QuickSort(vSorted, 0, n - 1, pasosSorted);
-        double MStepsSorted = pasosSorted / 1000000.0;
-        delete[] vSorted;
+        pasosQuick = 0;
+        pasosHeap = 0;
+        middle_QuickSort(v1, 0, n - 1, pasosQuick);
+        heapSort(v2, n, pasosHeap);
+        double pasosQuickOrdenado = (double)pasosQuick / 1000000.0;
+        double pasosHeapOrdenado = (double)pasosHeap / 1000000.0;
 
 
-        // --- ANÁLISIS QUICKSORT INVERSO (DECRECIENTE) ---
-        // Solo 1 muestra necesaria [cite: 12]
-        int *vReverse = new int[n];
+        // --- ANÁLISIS INVERSO (DECRECIENTE) ---
+        // Igual que el caso ordenado, solo 1 muestra necesaria y usando los mismos vectores que ya estan ordenados, pero ahora se crean en orden inverso
         // Crear vector inverso (n, n-1, ...)
-        for (size_t k = 0; k < n; k++) vReverse[k] = n - k;
+        for (size_t k = 0; k < n; k++) {
+            v1[k] = n - k; // Vector para Quicksort
+            v2[k] = v1[k]; // Copiar el mismo vector para ambos algoritmos
+        }
         
-        long long pasosReverse = 0;
-        middle_QuickSort(vReverse, 0, n - 1, pasosReverse);
-        double MStepsReverse = pasosReverse / 1000000.0;
-        delete[] vReverse;
+        pasosQuick = 0;
+        pasosHeap = 0;
+        middle_QuickSort(v1, 0, n - 1, pasosQuick);
+        heapSort(v2, n, pasosHeap);
+        double pasosQuickReverse = (double)pasosQuick / 1000000.0;
+        double pasosHeapReverse = (double)pasosHeap / 1000000.0;
 
+        // Liberamos memoria
+        delete [] v1;
+        delete [] v2;
 
-        // IMPRIMIR FILA DE LA TABLA
-        cout << n << "\t\t " 
-             << MStepsRandom << "\t\t " 
-             << MStepsSorted << "\t\t " 
-             << MStepsReverse << endl;
+        // Imprimir resultados
+        cout.width(9);
+        cout << n << flush;
+        cout.width(11);
+        cout << fixed << setprecision(4) << mediaPasosQuickRandom;
+        cout.width(11);
+        cout << fixed << setprecision(4) << mediaPasosHeapRandom;
+        cout.width(11);
+        cout << fixed << setprecision(4) << pasosQuickOrdenado;
+        cout.width(11);
+        cout << fixed << setprecision(4) << pasosHeapOrdenado;
+        cout.width(11);
+        cout << fixed << setprecision(4) << pasosQuickReverse;
+        cout.width(11);
+        cout << fixed << setprecision(4) << pasosHeapReverse;
+        cout << endl;
     }
 
     return 0;

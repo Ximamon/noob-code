@@ -1,7 +1,9 @@
+# Julian Hinojosa Gil, 48795869N
+
 OPTS = -Wall -Wextra -O3 -std=c++0x
 CC = g++
 
-all:  qs-vs-hs qs-vs-hs.Msteps graphs
+all:  qs-vs-hs qs-vs-hs.Msteps
 
 graphs: qs-vs-hs.Msteps qs-vs-hs.gpi
 	gnuplot qs-vs-hs.gpi
@@ -16,4 +18,4 @@ tar: qs-vs-hs.cc qs-vs-hs.gpi makefile
 	tar cvfz 48795869N.tar.gz qs-vs-hs.cc qs-vs-hs.gpi makefile
 
 clean: 
-	rm -rf qs-vs-hs qs-vs-hs.dSYM fit.log qs-vs-hs.Msteps qs-vs-hs.Msteps quickSort*.png *~
+	rm -rf qs-vs-hs qs-vs-hs.dSYM fit.log qs-vs-hs.Msteps qs-vs-hs.Msteps quickSort*.png heapSort*.png qs-vs-hs*.png *~
