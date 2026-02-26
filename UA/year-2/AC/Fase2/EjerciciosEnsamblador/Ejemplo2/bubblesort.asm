@@ -43,8 +43,10 @@ INNER_LOOP:
 
     ; --- Intercambio (Swap) ---
     ; EAX tiene el mayor y EDI tiene el menor. Los guardamos cruzados en la memoria.
-    MOV [ECX + ESI*4], EDI       ; Ponemos el menor en la posición actual
-    MOV [ECX + ESI*4 + 4], EAX   ; Ponemos el mayor en la posición siguiente
+    XCHG EAX, EDI                ; Intercambiamos los valores en los registros
+
+    MOV [ECX + ESI*4], EAX       ; Ponemos el menor en la posición actual
+    MOV [ECX + ESI*4 + 4], EDI   ; Ponemos el mayor en la posición siguiente
     
     MOV EBX, 1           ; Levantamos la bandera: ¡Hubo al menos un intercambio!
 
