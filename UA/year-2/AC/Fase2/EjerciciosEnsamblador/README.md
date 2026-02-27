@@ -4,7 +4,6 @@
 Hecho
 
 ## Ejercico 2
-
 ### BubbleSort SSE2
 
 
