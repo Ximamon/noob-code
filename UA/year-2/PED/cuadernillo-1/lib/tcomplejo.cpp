@@ -2,7 +2,7 @@
 // Created by julianhinojosagil on 1/2/26.
 //
 
-#include "../include/tcomplejo.h"
+#include "tcomplejo.h"
 #include <iostream>
 #include <cmath>
 
@@ -38,7 +38,7 @@ TComplejo& TComplejo::operator= (const TComplejo &other) {
 
 // ------------------------------------------------------
 
-// ------------------- Operadorres Aritmeticos (clase) -------------------
+// ------------------- Operadores Aritmeticos (clase) -------------------
 
 TComplejo TComplejo::operator+ (const TComplejo& other) const {
     // Suma: (a+c) + (b+d)i

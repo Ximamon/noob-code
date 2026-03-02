@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-#include "tcomplejo.h"
+#include "../include/tcomplejo.h"
 
 using namespace std;
 

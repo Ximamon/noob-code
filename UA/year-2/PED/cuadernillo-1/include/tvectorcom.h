@@ -11,23 +11,28 @@
 class TVectorCom {
     friend std::ostream & operator<<(std::ostream &, const TVectorCom &);
 
-    public:
-        TVectorCom();
-        TVectorCom(int);
-        TVectorCom(TVectorCom &);
-        TVectorCom& operator=(const TVectorCom &);
+public:
+    TVectorCom();
+    TVectorCom(int);
+    TVectorCom(const TVectorCom &);
+    ~TVectorCom();
+    TVectorCom& operator=(const TVectorCom &);
 
-        TComplejo& operator[](int);
-        TComplejo operator[](int) const;
+    TComplejo& operator[](int);
+    TComplejo operator[](int) const;
 
-        bool operator==(const TVectorCom &);
-        bool operator!=(const TVectorCom &);
+    bool operator==(const TVectorCom &);
+    bool operator!=(const TVectorCom &);
 
-        int Tamano();
-        int Ocupadas();
-        bool ExisteCom();
-        void MostrarComplejos(double);
-        bool Redimensionar(int);
+    int Tamano();
+    int Ocupadas();
+    bool ExisteCom();
+    void MostrarComplejos(double);
+    bool Redimensionar(int);
+private:
+    TComplejo *c;
+    int tamano;
+
 };
 
 #endif // TVECTORCOM_H
