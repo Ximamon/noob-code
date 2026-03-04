@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 CC = g++ # Version: 13.2.0
 FLAGS =-g -O3 -Wall -Wextra -std=c++11 -I $(INCLUDE_DIR)
-EXEC = tad
+EXEC = main
 # Cambiar a "tad" si se quiere ejecutar test
 
 # -----------------------------------------------------------------------------
