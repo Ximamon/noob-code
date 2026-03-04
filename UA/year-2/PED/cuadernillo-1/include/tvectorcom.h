@@ -21,17 +21,18 @@ public:
     TComplejo& operator[](int);
     TComplejo operator[](int) const;
 
-    bool operator==(const TVectorCom &);
-    bool operator!=(const TVectorCom &);
+    bool operator==(const TVectorCom &) const;
+    bool operator!=(const TVectorCom &) const;
 
-    int Tamano();
-    int Ocupadas();
-    bool ExisteCom();
-    void MostrarComplejos(double);
+    int Tamano() const;
+    int Ocupadas() const;
+    bool ExisteCom(TComplejo &);
+    void MostrarComplejos(double) const;
     bool Redimensionar(int);
 private:
     TComplejo *c;
     int tamano;
+    TComplejo error; // Necesario para devolver referencias cuando el índice falla
 
 };
 

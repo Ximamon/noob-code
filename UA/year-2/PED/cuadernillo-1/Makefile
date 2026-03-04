@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 CC = g++ # Version: 13.2.0
 FLAGS =-g -O3 -Wall -Wextra -std=c++11 -I $(INCLUDE_DIR)
-EXEC = main
+EXEC = tad
 # Cambiar a "tad" si se quiere ejecutar test
 
 # -----------------------------------------------------------------------------
@@ -39,7 +39,7 @@ test:
 
 # Limpieza
 clean:
-	rm -rf $(BUILD_DIR) $(EXEC) ComplejoPRUEBA/*.out src/tad.cpp
+	rm -rf $(BUILD_DIR) $(EXEC) ComplejoPRUEBA/*.out src/tad.cpp TVectorCom_PRUEBA/*.out
 
 # -----------------------------------------------------------------------------
 # Reglas de Compilación
