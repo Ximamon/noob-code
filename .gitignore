@@ -64,5 +64,11 @@ UA/year-2/AC/Fase 1/memoria.bbl
 /UA/year-2/AC/Fase2/EjerciciosEnsamblador/Inner Product/Debug
 /UA/year-2/AC/Fase2/EjerciciosEnsamblador/MatrixVectorMult/Debug
 /.vs
-/UA/year-2/AC/GPGPU/CUDA/01-Hola_GPU/build
-/UA/year-2/AC/GPGPU/CUDA/01-Hola_GPU/result
+/UA/year-2/AC/GPGPU/CUDA/0X-Matrix-2D/build
+/UA/year-2/AC/GPGPU/CUDA/0X-Matrix-2D/result
+/UA/year-2/AC/GPGPU/CUDA/01-HelloGPU/build
+/UA/year-2/AC/GPGPU/CUDA/01-HelloGPU/result
+UA/year-2/AC/GPGPU/CUDA/02-DeviceQuery/build
+UA/year-2/AC/GPGPU/CUDA/02-DeviceQuery/result
+UA/year-2/AC/GPGPU/CUDA/03-VectorAdd1D/build
+UA/year-2/AC/GPGPU/CUDA/03-VectorAdd1D/result

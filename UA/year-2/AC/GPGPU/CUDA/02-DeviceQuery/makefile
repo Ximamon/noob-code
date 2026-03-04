@@ -8,7 +8,7 @@ NVCC_FLAGS = -O2
 LIBS = -lcudart
 
 # Nombre del archivo principal (sin extensión)
-TARGET = hello
+TARGET = device_query
 
 # Carpetas del proyecto
 SRC_DIR = src
@@ -57,13 +57,26 @@ $(BUILD_DIR)/$(TARGET): $(SRC_DIR)/$(TARGET).cu | check_dirs
 run: all
 	@echo "--- [3/3] Ejecutando GPGPU-Sim ---"
 	@cd $(BUILD_DIR) && ./$(TARGET) > ../$(RESULT_DIR)/resultado_completo.txt
-	@echo "Simulación terminada. Filtrando resultados..."
-	@grep "Plugin funcionando" $(RESULT_DIR)/resultado_completo.txt > $(RESULT_DIR)/resultado_kernel.txt || echo "No se encontró salida del kernel." > $(RESULT_DIR)/resultado_kernel.txt
+	@echo "Simulación terminada. Extrayendo salida limpia..."
+	@awk ' \
+		BEGIN { p = 0 } \
+		/Extracting specific PTX file named/ { p = 1; next } \
+		/^kernel_name =/ { p = 0 } \
+		/^gpu_sim_cycle/ { p = 0 } \
+		/detected inactive GPU simulation thread/ { p = 1; next } \
+		/^GPGPU-Sim/ { next } \
+		/^self exe links to:/ { next } \
+		/^Running md5sum using/ { next } \
+		/^Destroy streams for kernel/ { next } \
+		NF == 0 { next } \
+		p == 1 { print $$0 } \
+	' $(RESULT_DIR)/resultado_completo.txt > $(RESULT_DIR)/resultado_kernel.txt
+	@if [ ! -s $(RESULT_DIR)/resultado_kernel.txt ]; then echo "No se encontró salida (¿El programa no imprime nada o hubo un error?)" > $(RESULT_DIR)/resultado_kernel.txt; fi
 	@echo ""
-	@echo "================ SALIDA DEL KERNEL ================"
+	@echo "================ SALIDA DEL PROGRAMA =============="
 	@cat $(RESULT_DIR)/resultado_kernel.txt
 	@echo "==================================================="
-	@echo "\nResultados guardados en la carpeta $(RESULT_DIR)/"
+	@echo "\nEl log completo del simulador está en $(RESULT_DIR)/resultado_completo.txt"
 
 # ==========================================
 # Limpieza profunda

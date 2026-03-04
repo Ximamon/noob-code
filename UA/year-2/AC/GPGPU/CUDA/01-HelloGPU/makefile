@@ -8,7 +8,7 @@ NVCC_FLAGS = -O2
 LIBS = -lcudart
 
 # Nombre del archivo principal (sin extensión)
-TARGET = 2dmatrix
+TARGET = hello
 
 # Carpetas del proyecto
 SRC_DIR = src

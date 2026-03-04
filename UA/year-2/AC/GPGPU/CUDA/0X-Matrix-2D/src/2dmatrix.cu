@@ -26,9 +26,9 @@ __global__ void matrixMulNaive(float *A, float *B, float *C, int M, int K, int N
 
 int main() {
     // Dimensiones de matrices (1024x1024)
-    int M = 1024;
-    int K = 1024;
-    int N = 1024;
+    int M = 64;
+    int K = 64;
+    int N = 64;
 
     size_t sizeA = M * K * sizeof(float);
     size_t sizeB = K * N * sizeof(float);
