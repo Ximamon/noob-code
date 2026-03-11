@@ -10,6 +10,9 @@
 #include "tvectorcom.h"
 
 class TListaNodo {
+    // Declaramos las clases amigas para que puedan acceder a la parte privada
+    friend class TListaPos;
+    friend class TListaCom;
 public:
     TListaNodo();
     TListaNodo(const TListaNodo &);
