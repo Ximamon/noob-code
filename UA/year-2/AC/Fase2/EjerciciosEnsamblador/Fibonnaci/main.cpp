@@ -2,6 +2,9 @@
  * Fibonacci - Benchmark Unificado F-II - Arquitectura de Computadores
  * Universidad de Alicante
  *
+ * Algoritmos: Fibonacci
+ *   Se trata de una secuencia de numeros donde cada termino es la suma de los dos anteriores
+ * 
  * Punto central: main() ejecuta las tres versiones y compara tiempos.
  *   VERSION 1: C puro
  *   VERSION 2: Ensamblador x86 inline (MSVC)
@@ -23,10 +26,10 @@
 #include <time.h>
 #include <emmintrin.h>
 
-#define N            500
-#define N_SSE        400
-#define NUM_SERIES     4
-#define ITERACIONES  10000000
+#define N            500        // Terminos de Fibonacci a calcular en versiones C y ASM, que son los numeros que van de fib[0] a fib[499]
+#define N_SSE        400        // Terminos de Fibonacci a calcular en version SSE (cada termino es un vector de 4 enteros, por eso 400 y no 500)
+#define NUM_SERIES     4        // Numero de series de Fibonacci paralelas en version SSE (4 por el tamaño de los registros XMM)
+#define ITERACIONES  10000000   // Numero de iteraciones para el benchmark (ajustar segun el tiempo de ejecucion)
 
  /* ============================================================
   * VERSION 1: Fibonacci en C puro
@@ -47,8 +50,10 @@ void fibonacci_c(long long fib[N]) {
  * ============================================================ */
 void fibonacci_asm(int fib[N]) {
     __asm {
-        /* Cargar direccion base del array en ESI */
-        lea  esi, fib
+        /* MOV carga el VALOR del puntero = direccion real del array.
+           LEA cargaria la direccion del puntero en la pila (incorrecto). */
+        mov  esi, fib             /* ESI = &fib[0] (direccion real del array) */
+
 
         /* --- Inicializar fib[0]=0, fib[1]=1 --- */
         mov  eax, 0               /* EAX = 0 (fib[0]) */
@@ -88,11 +93,8 @@ void fibonacci_asm(int fib[N]) {
  * Calcula 4 series de Fibonacci en paralelo usando registros XMM
  * de 128 bits. Instrucciones SSE2: PADDD, MOVDQA, MOVDQU
  * ============================================================ */
-void fibonacci_sse(int inicio[NUM_SERIES], int resultado[NUM_SERIES][N_SSE]) {
+void fibonacci_sse(int inicio[NUM_SERIES], int resultado[N_SSE][NUM_SERIES]) {
     __m128i xmm0, xmm1, xmm2;
-    /* 16-byte aligned buffer: required for _mm_store_si128 and avoids
-       stack corruption detected by MSVC /RTC1 in Debug x86 builds */
-    __declspec(align(16)) int temp[4];
 
     /* fib[0] = 0 para las 4 series */
     xmm0 = _mm_set_epi32(0, 0, 0, 0);
@@ -100,20 +102,20 @@ void fibonacci_sse(int inicio[NUM_SERIES], int resultado[NUM_SERIES][N_SSE]) {
     /* fib[1] = valor inicial de cada serie */
     xmm1 = _mm_set_epi32(inicio[3], inicio[2], inicio[1], inicio[0]);
 
-    for (int s = 0; s < NUM_SERIES; s++) {
-        resultado[s][0] = 0;
-        resultado[s][1] = inicio[s];
-    }
+    /* Guardar fib[0] y fib[1] directamente con MOVDQU (128 bits de golpe) */
+	_mm_storeu_si128((__m128i*)resultado[0], xmm0); // fib[0] = 0 para las 4 series
+	_mm_storeu_si128((__m128i*)resultado[1], xmm1); // fib[1] = valor inicial de cada serie
 
     for (int i = 2; i < N_SSE; i++) {
         /* PADDD: suma 4 enteros de 32 bits en paralelo */
         xmm2 = _mm_add_epi32(xmm0, xmm1);
 
         /* MOVDQA: guardar 128 bits en memoria alineada */
-        _mm_store_si128((__m128i*)temp, xmm2);
+        _mm_storeu_si128((__m128i*)resultado[i], xmm2);
 
-        for (int s = 0; s < NUM_SERIES; s++)
-            resultado[s][i] = temp[s];
+        // Este bucle anula el paralelismo
+        // for (int s = 0; s < NUM_SERIES; s++)
+        //     resultado[s][i] = temp[s];
 
         /* Deslizar ventana */
         xmm0 = xmm1;
@@ -178,7 +180,7 @@ int main() {
      * VERSION 3: SSE2 (SIMD) - 4 series en paralelo
      * ---------------------------------------------------------- */
     {
-        int resultado[NUM_SERIES][N_SSE];
+        int resultado[N_SSE][NUM_SERIES];
         int inicioSeries[NUM_SERIES] = { 1, 2, 3, 5 };
         printf("\n--- VERSION 3: SSE2 (SIMD) - %d series en paralelo ---\n", NUM_SERIES);
         inicio = clock();
@@ -193,7 +195,7 @@ int main() {
         printf("------------------------------------------------------------------------------------\n");
         for (int i = 0; i < 10; i++) {
             printf("%-4d  %-20d %-20d %-20d %-20d\n",
-                i, resultado[0][i], resultado[1][i], resultado[2][i], resultado[3][i]);
+                i, resultado[i][0], resultado[i][1], resultado[i][2], resultado[i][3]);
         }
         printf("Tiempo: %.4f segundos\n", tiempo);
 
