@@ -18,6 +18,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{D107F4C8-89CC-BEA8-D3D7-CA6B7733353D}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
+		resumen_refactor.md = resumen_refactor.md
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Fibonnaci", "Fibonnaci\Fibonnaci.vcxproj", "{5479EF38-5844-4CA5-8D4A-CE3619FE2984}"
