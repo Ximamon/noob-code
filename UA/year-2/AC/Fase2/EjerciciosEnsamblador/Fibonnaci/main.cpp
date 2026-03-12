@@ -3,9 +3,9 @@
  * Universidad de Alicante
  *
  * Punto central: main() ejecuta las tres versiones y compara tiempos.
- *   VERSION 1: C puro             (fibonacci_c.c)
- *   VERSION 2: Ensamblador x86    (este fichero, inline MSVC)
- *   VERSION 3: SSE2 SIMD          (fibonacci_sse.c)
+ *   VERSION 1: C puro
+ *   VERSION 2: Ensamblador x86 inline (MSVC)
+ *   VERSION 3: SSE2 SIMD
  *
  * Instrucciones x86 usadas en version ASM:
  *   MOV  - transferencia de datos
@@ -23,16 +23,22 @@
 #include <time.h>
 #include <emmintrin.h>
 
-#define N          500
-#define N_SSE      400
-#define NUM_SERIES   4
-#define ITERACIONES  5000000
+#define N            500
+#define N_SSE        400
+#define NUM_SERIES     4
+#define ITERACIONES  10000000
 
-/* ============================================================
- * Declaraciones de funciones definidas en otros ficheros
- * ============================================================ */
-void fibonacci_c(long long fib[N]);
-void fibonacci_sse(int inicio[NUM_SERIES], int resultado[NUM_SERIES][N_SSE]);
+ /* ============================================================
+  * VERSION 1: Fibonacci en C puro
+  * Opera con long long (64 bits). Sin desbordamiento hasta fib[92].
+  * ============================================================ */
+void fibonacci_c(long long fib[N]) {
+    fib[0] = 0;
+    fib[1] = 1;
+    for (int i = 2; i < N; i++) {
+        fib[i] = fib[i - 1] + fib[i - 2];
+    }
+}
 
 /* ============================================================
  * VERSION 2: Fibonacci en Ensamblador x86 inline (MSVC)
@@ -49,8 +55,8 @@ void fibonacci_asm(int fib[N]) {
         mov  ebx, 1               /* EBX = 1 (fib[1]) */
 
         /* Guardar fib[0] y fib[1] en memoria */
-        mov [esi], eax            /* fib[0] = EAX */
-        mov [esi + 4], ebx        /* fib[1] = EBX */
+        mov[esi], eax            /* fib[0] = EAX */
+        mov[esi + 4], ebx        /* fib[1] = EBX */
 
         /* ECX = N - 2 (contador de terminos restantes) */
         mov  ecx, N
@@ -62,18 +68,56 @@ void fibonacci_asm(int fib[N]) {
         fib_loop:
         /* EDX = EAX + EBX  =>  fib[i] = fib[i-2] + fib[i-1] */
         mov  edx, ebx             /* EDX = EBX */
-        add  edx, eax             /* EDX = EAX + EBX */
+            add  edx, eax             /* EDX = EAX + EBX */
 
-        /* Guardar resultado en memoria */
-        mov [esi], edx            /* fib[i] = EDX */
-        add  esi, 4               /* avanzar al siguiente elemento */
+            /* Guardar resultado en memoria */
+            mov[esi], edx            /* fib[i] = EDX */
+            add  esi, 4               /* avanzar al siguiente elemento */
+
+            /* Deslizar ventana */
+            mov  eax, ebx             /* EAX = fib[i-1] */
+            mov  ebx, edx             /* EBX = fib[i]   */
+
+            /* LOOP: ECX--, si ECX != 0 salta a fib_loop */
+            loop fib_loop
+    }
+}
+
+/* ============================================================
+ * VERSION 3: Fibonacci SSE2 (SIMD)
+ * Calcula 4 series de Fibonacci en paralelo usando registros XMM
+ * de 128 bits. Instrucciones SSE2: PADDD, MOVDQA, MOVDQU
+ * ============================================================ */
+void fibonacci_sse(int inicio[NUM_SERIES], int resultado[NUM_SERIES][N_SSE]) {
+    __m128i xmm0, xmm1, xmm2;
+    /* 16-byte aligned buffer: required for _mm_store_si128 and avoids
+       stack corruption detected by MSVC /RTC1 in Debug x86 builds */
+    __declspec(align(16)) int temp[4];
+
+    /* fib[0] = 0 para las 4 series */
+    xmm0 = _mm_set_epi32(0, 0, 0, 0);
+
+    /* fib[1] = valor inicial de cada serie */
+    xmm1 = _mm_set_epi32(inicio[3], inicio[2], inicio[1], inicio[0]);
+
+    for (int s = 0; s < NUM_SERIES; s++) {
+        resultado[s][0] = 0;
+        resultado[s][1] = inicio[s];
+    }
+
+    for (int i = 2; i < N_SSE; i++) {
+        /* PADDD: suma 4 enteros de 32 bits en paralelo */
+        xmm2 = _mm_add_epi32(xmm0, xmm1);
+
+        /* MOVDQA: guardar 128 bits en memoria alineada */
+        _mm_store_si128((__m128i*)temp, xmm2);
+
+        for (int s = 0; s < NUM_SERIES; s++)
+            resultado[s][i] = temp[s];
 
         /* Deslizar ventana */
-        mov  eax, ebx             /* EAX = fib[i-1] */
-        mov  ebx, edx             /* EBX = fib[i]   */
-
-        /* LOOP: ECX--, si ECX != 0 salta a fib_loop */
-        loop fib_loop
+        xmm0 = xmm1;
+        xmm1 = xmm2;
     }
 }
 
@@ -135,7 +179,7 @@ int main() {
      * ---------------------------------------------------------- */
     {
         int resultado[NUM_SERIES][N_SSE];
-        int inicioSeries[NUM_SERIES] = {1, 2, 3, 5};
+        int inicioSeries[NUM_SERIES] = { 1, 2, 3, 5 };
         printf("\n--- VERSION 3: SSE2 (SIMD) - %d series en paralelo ---\n", NUM_SERIES);
         inicio = clock();
         for (int iter = 0; iter < ITERACIONES; iter++)
@@ -145,11 +189,11 @@ int main() {
 
         printf("Primeros 10 terminos de cada serie:\n");
         printf("%-4s  %-20s %-20s %-20s %-20s\n",
-               "i", "Serie0(fib1=1)", "Serie1(fib1=2)", "Serie2(fib1=3)", "Serie3(fib1=5)");
+            "i", "Serie0(fib1=1)", "Serie1(fib1=2)", "Serie2(fib1=3)", "Serie3(fib1=5)");
         printf("------------------------------------------------------------------------------------\n");
         for (int i = 0; i < 10; i++) {
             printf("%-4d  %-20d %-20d %-20d %-20d\n",
-                   i, resultado[0][i], resultado[1][i], resultado[2][i], resultado[3][i]);
+                i, resultado[0][i], resultado[1][i], resultado[2][i], resultado[3][i]);
         }
         printf("Tiempo: %.4f segundos\n", tiempo);
 
