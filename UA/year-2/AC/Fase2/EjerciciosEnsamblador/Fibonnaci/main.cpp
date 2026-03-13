@@ -24,7 +24,7 @@
 
 #include <stdio.h>
 #include <time.h>
-#include <emmintrin.h>
+#include <emmintrin.h>          // Cabecera para intrinsecos de SSE2
 
 #define NUM_SERIES     4        // Numero de series de Fibonacci paralelas en version SSE (4 por el tamaño de los registros XMM)
 #define ITERACIONES  10000000   // Numero de iteraciones para el benchmark (ajustar segun el tiempo de ejecucion)
@@ -145,8 +145,13 @@ int main() {
     printf("  _mm_add_epi32    -> PADDD   / suma paralela 4 x 32 bits\n");
     printf("  _mm_storeu_si128 -> MOVDQU  / guardar 128 bits en memoria\n");
 
-    int tam_N[] = { 100, 200, 400, 800, 1600, 6400, 25600, 102400};
-    const int num_test = 8;
+
+	// Tamaños de N para cada test (ajustar array según el numero de test deseados)
+    // 10 -> Benchmark completo
+	// 5  -> Benchmark reducido (para pruebas rápidas)
+	// 1  -> Solo un test (N=100) para verificar resultados sin esperar tiempos largos
+    int tam_N[] = { 100, 200, 400, 800, 1600 }; //, 6400, 25600, 102400, 409.600, 1638400};
+    const int num_test = 5;
 
     double resultados[num_test][3]; // [Fila: Num Test][Columna: Versión C, ASM, SSE]
 
@@ -175,7 +180,7 @@ int main() {
             resultados[i][0] = tiempo;
 
             if (SHOW_OUTPUT) {
-                printf("Primeros 15 terminos:\n");
+                printf("Ultimos 15 terminos:\n");
                 // Antes de usar 'fib', verifica que la asignación fue exitosa
                 if (fib != NULL) {
                     for (int i = 0; i < 15; i++)
@@ -247,7 +252,7 @@ int main() {
             if (SHOW_OUTPUT) {
                 printf("Primeros 10 terminos de cada serie:\n");
                 printf("%-4s  %-20s %-20s %-20s %-20s\n",
-                    "i", "Serie0(fib1=1)", "Serie1(fib1=2)", "Serie2(fib1=3)", "Serie3(fib1=5)");
+                    "i", "Serie0 (fib1=1)", "Serie1 (fib1=2)", "Serie2 (fib1=3)", "Serie3 (fib1=5)");
                 printf("------------------------------------------------------------------------------------\n");
                 for (int i = 0; i < 10; i++) {
                     printf("%-4d  %-20d %-20d %-20d %-20d\n",
