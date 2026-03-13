@@ -23,6 +23,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 #include <time.h>
 #include <emmintrin.h>          // Cabecera para intrinsecos de SSE2
 
@@ -30,14 +32,14 @@
 #define ITERACIONES  10000000   // Numero de iteraciones para el benchmark (ajustar segun el tiempo de ejecucion)
 
  // Flags para mostrar resultados, tiempos y informacion adicional
-#define SHOW_OUTPUT     0       // Mostrar los primeros terminos de cada serie (1 = SI, 0 = NO)
+#define SHOW_OUTPUT     1       // Mostrar los primeros terminos de cada serie (1 = SI, 0 = NO)
 #define SHOW_TIMES      1       // Mostrar tiempos de ejecucion de cada version (1 = SI, 0 = NO)
 
  /* ============================================================
   * VERSION 1: Fibonacci en C puro
   * Opera con long long (64 bits). Sin desbordamiento hasta fib[92].
   * ============================================================ */
-void fibonacci_c(long long *fib, int n_actual) {
+void fibonacci_c(uint32_t *fib, int n_actual) {
     fib[0] = 0;
     fib[1] = 1;
     for (int i = 2; i < n_actual; i++) {
@@ -50,7 +52,7 @@ void fibonacci_c(long long *fib, int n_actual) {
  * Opera con registros de 32 bits (int). Desbordamiento esperado
  * a partir del termino 46 (fib[46] > INT_MAX).
  * ============================================================ */
-void fibonacci_asm(int *fib, int n_actual) {
+void fibonacci_asm(uint32_t *fib, int n_actual) {
     __asm {
         /* MOV carga el VALOR del puntero = direccion real del array.
            LEA cargaria la direccion del puntero en la pila (incorrecto). */
@@ -95,7 +97,7 @@ void fibonacci_asm(int *fib, int n_actual) {
  * Calcula 4 series de Fibonacci en paralelo usando registros XMM
  * de 128 bits. Instrucciones SSE2: PADDD, MOVDQA, MOVDQU
  * ============================================================ */
-void fibonacci_sse(int inicio[NUM_SERIES], int (*resultado)[NUM_SERIES], int n_actual) {
+void fibonacci_sse(uint32_t inicio[NUM_SERIES], uint32_t (*resultado)[NUM_SERIES], int n_actual) {
     __m128i xmm0, xmm1, xmm2;
 
     /* fib[0] = 0 para las 4 series */
@@ -150,8 +152,8 @@ int main() {
     // 10 -> Benchmark completo
 	// 5  -> Benchmark reducido (para pruebas rápidas)
 	// 1  -> Solo un test (N=100) para verificar resultados sin esperar tiempos largos
-    int tam_N[] = { 100, 200, 400, 800, 1600 }; //, 6400, 25600, 102400, 409.600, 1638400};
-    const int num_test = 5;
+    int tam_N[] = { 100 }; //, 200, 400, 800, 1600 }; //, 6400, 25600, 102400, 409.600, 1638400};
+    const int num_test = 1;
 
     double resultados[num_test][3]; // [Fila: Num Test][Columna: Versión C, ASM, SSE]
 
@@ -167,7 +169,7 @@ int main() {
         * VERSION 1: C puro
         * ---------------------------------------------------------- */
         {
-            long long* fib = (long long*)malloc(actual_N * sizeof(long long));
+            uint32_t* fib = (uint32_t*)malloc(actual_N * sizeof(uint32_t));
 
             printf("\n--- VERSION 1: C puro ---\n");
 
@@ -183,8 +185,8 @@ int main() {
                 printf("Ultimos 15 terminos:\n");
                 // Antes de usar 'fib', verifica que la asignación fue exitosa
                 if (fib != NULL) {
-                    for (int i = 0; i < 15; i++)
-                        printf("  fib[%2d] = %lld\n", i, fib[i]);
+                    for (int i = actual_N - 15; i < actual_N; i++)
+                        printf("  fib[%2d] = %u\n", i, fib[i]);
                 }
                 else {
                     printf("Error: No se pudo asignar memoria para 'fib'.\n");
@@ -201,7 +203,7 @@ int main() {
          * VERSION 2: Ensamblador x86 inline
          * ---------------------------------------------------------- */
         {
-            int* fib = (int*)malloc(actual_N * sizeof(int));
+            uint32_t* fib = (uint32_t*)malloc(actual_N * sizeof(uint32_t));
 
             printf("\n--- VERSION 2: Ensamblador x86 inline (MSVC) ---\n");
             printf("(registros 32 bits: desbordamiento esperado a partir de fib[46])\n");
@@ -218,8 +220,8 @@ int main() {
                 printf("Primeros 15 terminos:\n");
                 // Antes de usar 'fib', verifica que la asignación fue exitosa
                 if (fib != NULL) {
-                    for (int i = 0; i < 15; i++)
-                        printf("  fib[%2d] = %d\n", i, fib[i]);
+                    for (int i = actual_N - 15; i < actual_N; i++)
+                        printf("  fib[%2d] = %u\n", i, fib[i]);
                 }
                 else {
                     printf("Error: No se pudo asignar memoria para 'fib'.\n");
@@ -236,8 +238,8 @@ int main() {
          * VERSION 3: SSE2 (SIMD) - 4 series en paralelo
          * ---------------------------------------------------------- */
         {
-            int (*resultado)[4] = (int (*)[4])malloc(actual_N * sizeof(*resultado));
-            int inicioSeries[4] = { 1, 2, 3, 5 };
+            uint32_t (*resultado)[4] = (uint32_t (*)[4])malloc(actual_N * sizeof(*resultado));
+            uint32_t inicioSeries[4] = { 1, 2, 3, 5 };
 
             printf("\n--- VERSION 3: SSE2 (SIMD) - %d series en paralelo ---\n", NUM_SERIES);
 
@@ -254,8 +256,8 @@ int main() {
                 printf("%-4s  %-20s %-20s %-20s %-20s\n",
                     "i", "Serie0 (fib1=1)", "Serie1 (fib1=2)", "Serie2 (fib1=3)", "Serie3 (fib1=5)");
                 printf("------------------------------------------------------------------------------------\n");
-                for (int i = 0; i < 10; i++) {
-                    printf("%-4d  %-20d %-20d %-20d %-20d\n",
+                for (int i = actual_N - 10; i < actual_N; i++) {
+                    printf("%-4d  %-20u %-20u %-20u %-20u\n",
                         i, resultado[i][0], resultado[i][1], resultado[i][2], resultado[i][3]);
                 }
             }
