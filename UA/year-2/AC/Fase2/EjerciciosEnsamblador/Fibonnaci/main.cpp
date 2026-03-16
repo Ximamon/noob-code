@@ -37,11 +37,10 @@
 
  /* ============================================================
   * VERSION 1: Fibonacci en C puro
-  * Opera con long long (64 bits). Sin desbordamiento hasta fib[92].
   * ============================================================ */
-void fibonacci_c(uint32_t *fib, int n_actual) {
+void fibonacci_c(uint32_t *fib, int n_actual, uint32_t inicio) {
     fib[0] = 0;
-    fib[1] = 1;
+    fib[1] = inicio;
     for (int i = 2; i < n_actual; i++) {
         fib[i] = fib[i - 1] + fib[i - 2];
     }
@@ -52,7 +51,7 @@ void fibonacci_c(uint32_t *fib, int n_actual) {
  * Opera con registros de 32 bits (int). Desbordamiento esperado
  * a partir del termino 46 (fib[46] > INT_MAX).
  * ============================================================ */
-void fibonacci_asm(uint32_t *fib, int n_actual) {
+void fibonacci_asm(uint32_t *fib, int n_actual, uint32_t inicio) {
     __asm {
         /* MOV carga el VALOR del puntero = direccion real del array.
            LEA cargaria la direccion del puntero en la pila (incorrecto). */
@@ -61,7 +60,7 @@ void fibonacci_asm(uint32_t *fib, int n_actual) {
 
         /* --- Inicializar fib[0]=0, fib[1]=1 --- */
         mov  eax, 0               /* EAX = 0 (fib[0]) */
-        mov  ebx, 1               /* EBX = 1 (fib[1]) */
+        mov  ebx, inicio               /* EBX = 1 (fib[1]) */
 
         /* Guardar fib[0] y fib[1] en memoria */
         mov[esi], eax            /* fib[0] = EAX */
@@ -155,6 +154,8 @@ int main() {
     int tam_N[] = { 100 }; //, 200, 400, 800, 1600 }; //, 6400, 25600, 102400, 409.600, 1638400};
     const int num_test = 1;
 
+    uint32_t inicioSeries[4] = { 1, 2, 3, 5 };
+
     double resultados[num_test][3]; // [Fila: Num Test][Columna: Versión C, ASM, SSE]
 
     for (int i = 0; i < num_test; i++) {
@@ -175,7 +176,8 @@ int main() {
 
             inicio = clock();
             for (int iter = 0; iter < ITERACIONES; iter++)
-                fibonacci_c(fib, actual_N);
+                for (int s = 0; s < 4; s++)
+                    fibonacci_c(fib, actual_N, inicioSeries[s]);
             fin = clock();
             tiempo = (double)(fin - inicio) / CLOCKS_PER_SEC;
 
@@ -210,7 +212,8 @@ int main() {
 
             inicio = clock();
             for (int iter = 0; iter < ITERACIONES; iter++)
-                fibonacci_asm(fib, actual_N);
+                for (int s = 0; s < 4; s++)
+                    fibonacci_asm(fib, actual_N, inicioSeries[s]);
             fin = clock();
             tiempo = (double)(fin - inicio) / CLOCKS_PER_SEC;
 
@@ -239,7 +242,6 @@ int main() {
          * ---------------------------------------------------------- */
         {
             uint32_t (*resultado)[4] = (uint32_t (*)[4])malloc(actual_N * sizeof(*resultado));
-            uint32_t inicioSeries[4] = { 1, 2, 3, 5 };
 
             printf("\n--- VERSION 3: SSE2 (SIMD) - %d series en paralelo ---\n", NUM_SERIES);
 
@@ -272,7 +274,7 @@ int main() {
     printf("\n\n============================================================\n");
     printf("   RESULTADOS FINALES - TIEMPO DE EJECUCION (Segundos)\n");
     printf("============================================================\n");
-    printf(" %-10s | %-12s | %-12s | %-12s\n", "N Terminos", "C (64-bit)", "ASM (32-bit)", "SSE (SIMD)");
+    printf(" %-10s | %-12s | %-12s | %-12s\n", "N Terminos", "C (32-bit)", "ASM (32-bit)", "SSE (32-bit SIMD)");
     printf("------------|--------------|--------------|--------------\n");
 
     for (int i = 0; i < num_test; i++) {
