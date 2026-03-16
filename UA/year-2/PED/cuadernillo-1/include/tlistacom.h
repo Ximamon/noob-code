@@ -26,10 +26,10 @@ public:
     TListaCom operator-(const TListaCom&);
 
     bool EsVacia();
-    bool InsCabeza(const TListaCom&);
+    bool InsCabeza(const TComplejo&);
     bool InsertarI(TComplejo&, const TListaCom&);
     bool InsertarD(TComplejo&, const TListaCom&);
-    bool Borrar(const TComplejo&);
+    bool Borrar(TComplejo&);
     bool BorrarTodos(const TComplejo&);
     bool Borrar(const TListaPos&);
     TComplejo Obtener(const TListaPos&);

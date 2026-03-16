@@ -36,8 +36,10 @@ public:
     double Arg() const;                         // Calcula el Argumento (en Radianes)
     double Mod() const;                         // Calcula el Módulo
 private:
-    double re;
-    double im;
+    double re{};
+    double im{};
+
+    void copia(const TComplejo&);
 };
 
 #endif //TCOMPLEJO_H

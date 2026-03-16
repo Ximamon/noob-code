@@ -15,10 +15,14 @@ TComplejo::TComplejo(double re, double im) {
     this->im = im;
 }
 
-// Constructor de copia
-TComplejo::TComplejo(const TComplejo &other) {
+void TComplejo::copia(const TComplejo &other) {
     this->re = other.re;
     this->im = other.im;
+}
+
+// Constructor de copia
+TComplejo::TComplejo(const TComplejo &other) {
+    copia(other);
 }
 
 // Destructor
