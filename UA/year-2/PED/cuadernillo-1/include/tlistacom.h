@@ -8,8 +8,39 @@
 #include <iostream>
 #include "tcomplejo.h"
 #include "tvectorcom.h"
-#include "tlistanodo.h"
-#include "tlistapos.h"
+
+class TListaNodo {
+    // Declaramos las clases amigas para que puedan acceder a la parte privada
+    friend class TListaPos;
+    friend class TListaCom;
+public:
+    TListaNodo();
+    TListaNodo(const TListaNodo &);
+    ~TListaNodo();
+    TListaNodo &operator=(const TListaNodo &);
+private:
+    TComplejo e;
+    TListaNodo *anterior;
+    TListaNodo *siguiente;
+};
+
+class TListaPos {
+public:
+    TListaPos();
+    TListaPos(const TListaPos &);
+    ~TListaPos();
+    TListaPos &operator=(const TListaPos &);
+
+    bool operator==(const TListaPos &);
+    bool operator!=(const TListaPos &);
+
+    TListaPos Anterior();
+    TListaPos Siguiente();
+
+    bool EsVacia();
+private:
+    TListaNodo *pos;
+};
 
 class TListaCom {
     friend std::ostream & operator<<(std::ostream &, TListaCom &);
