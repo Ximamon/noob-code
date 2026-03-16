@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 CC = g++ # Version: 13.2.0
 FLAGS =-g -O3 -Wall -Wextra -std=c++11 -I $(INCLUDE_DIR)
-EXEC = main
+EXEC = tad
 # Cambiar a "tad" si se quiere ejecutar test
 
 # -----------------------------------------------------------------------------
@@ -15,12 +15,12 @@ BUILD_DIR = build
 INCLUDE_DIR = include
 
 # Búsqueda de fuentes
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+#SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+SRCS = $(SRC_DIR)/tad.cpp
 LIBS = $(wildcard $(LIB_DIR)/*.cpp)
 
 # Generación de la lista de objetos
-OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS)) \
-	   $(patsubst $(LIB_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(LIBS))
+OBJS = $(patsubst $(LIB_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(LIBS))
 
 # -----------------------------------------------------------------------------
 # Reglas Principales
@@ -39,7 +39,7 @@ test:
 
 # Limpieza
 clean:
-	rm -rf $(BUILD_DIR) $(EXEC) ComplejoPRUEBA/*.out src/tad.cpp TVectorCom_PRUEBA/*.out
+	rm -rf $(BUILD_DIR) $(EXEC) src/tad.cpp ComplejoPRUEBA/*.out TVectorCom_PRUEBA/*.out TListaCom_PRUEBA/*.out
 
 # -----------------------------------------------------------------------------
 # Reglas de Compilación
@@ -47,11 +47,11 @@ clean:
 
 # Linkeo final (Creación del ejecutable)
 $(EXEC): $(OBJS)
-	$(CC) $(FLAGS) $^ -o $@
+	$(CC) $(FLAGS) $(SRC_DIR)/$(EXEC).cpp $^ -o $@
 
 # Compilación de objetos desde SRC
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
-	$(CC) $(FLAGS) -c $< -o $@
+#$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
+	#$(CC) $(FLAGS) -c $< -o $@
 
 # Compilación de objetos desde LIB
 $(BUILD_DIR)/%.o: $(LIB_DIR)/%.cpp | $(BUILD_DIR)
@@ -78,3 +78,4 @@ $(BUILD_DIR):
 #        Uso: Para el linkeo final, pasando todos los objetos.
 #
 # =============================================================================
+
