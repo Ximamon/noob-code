@@ -39,7 +39,7 @@ test:
 
 # Limpieza
 clean:
-	rm -rf $(BUILD_DIR) $(EXEC) src/tad.cpp ComplejoPRUEBA/*.out TVectorCom_PRUEBA/*.out TListaCom_PRUEBA/*.out
+	rm -rf $(BUILD_DIR) $(EXEC) ComplejoPRUEBA/*.out TVectorCom_PRUEBA/*.out TListaCom_PRUEBA/*.out tad.dSYM
 
 # -----------------------------------------------------------------------------
 # Reglas de Compilación
