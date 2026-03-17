@@ -32,8 +32,8 @@
 #define ITERACIONES  10000000   // Numero de iteraciones para el benchmark (ajustar segun el tiempo de ejecucion)
 
  // Flags para mostrar resultados, tiempos y informacion adicional
-#define SHOW_OUTPUT     1       // Mostrar los primeros terminos de cada serie (1 = SI, 0 = NO)
-#define SHOW_TIMES      1       // Mostrar tiempos de ejecucion de cada version (1 = SI, 0 = NO)
+#define SHOW_OUTPUT     0       // Mostrar los primeros terminos de cada serie (1 = SI, 0 = NO)
+#define SHOW_TIMES      0       // Mostrar tiempos de ejecucion de cada version (1 = SI, 0 = NO)
 
  /* ============================================================
   * VERSION 1: Fibonacci en C puro
@@ -51,45 +51,10 @@ void fibonacci_c(uint32_t *fib, int n_actual, uint32_t inicio) {
  * Opera con registros de 32 bits (int). Desbordamiento esperado
  * a partir del termino 46 (fib[46] > INT_MAX).
  * ============================================================ */
-void fibonacci_asm(uint32_t *fib, int n_actual, uint32_t inicio) {
-    __asm {
-        /* MOV carga el VALOR del puntero = direccion real del array.
-           LEA cargaria la direccion del puntero en la pila (incorrecto). */
-        mov  esi, fib             /* ESI = &fib[0] (direccion real del array) */
-
-
-        /* --- Inicializar fib[0]=0, fib[1]=1 --- */
-        mov  eax, 0               /* EAX = 0 (fib[0]) */
-        mov  ebx, inicio               /* EBX = 1 (fib[1]) */
-
-        /* Guardar fib[0] y fib[1] en memoria */
-        mov[esi], eax            /* fib[0] = EAX */
-        mov[esi + 4], ebx        /* fib[1] = EBX */
-
-        /* ECX = N - 2 (contador de terminos restantes) */
-        mov  ecx, n_actual
-        sub  ecx, 2               /* ECX = 498 */
-
-        /* Avanzar puntero a fib[2] (2 * 4 bytes = 8) */
-        add  esi, 8
-
-        fib_loop:
-        /* EDX = EAX + EBX  =>  fib[i] = fib[i-2] + fib[i-1] */
-            mov  edx, ebx             /* EDX = EBX */
-            add  edx, eax             /* EDX = EAX + EBX */
-
-            /* Guardar resultado en memoria */
-            mov[esi], edx            /* fib[i] = EDX */
-            add  esi, 4               /* avanzar al siguiente elemento */
-
-            /* Deslizar ventana */
-            mov  eax, ebx             /* EAX = fib[i-1] */
-            mov  ebx, edx             /* EBX = fib[i]   */
-
-            /* LOOP: ECX--, si ECX != 0 salta a fib_loop */
-            loop fib_loop
-    }
-}
+#ifdef __cplusplus
+extern "C"
+#endif
+void fibonacci_asm(uint32_t* fib, int n_actual, uint32_t inicio);
 
 /* ============================================================
  * VERSION 3: Fibonacci SSE2 (SIMD)
@@ -151,8 +116,8 @@ int main() {
     // 10 -> Benchmark completo
 	// 5  -> Benchmark reducido (para pruebas rápidas)
 	// 1  -> Solo un test (N=100) para verificar resultados sin esperar tiempos largos
-    int tam_N[] = { 100 }; //, 200, 400, 800, 1600 }; //, 6400, 25600, 102400, 409.600, 1638400};
-    const int num_test = 1;
+    int tam_N[] = { 100, 200, 400, 800, 1600, 6400, 25600, 102400, 409600, 1638400};
+    const int num_test = 10;
 
     uint32_t inicioSeries[4] = { 1, 2, 3, 5 };
 
@@ -161,9 +126,12 @@ int main() {
     for (int i = 0; i < num_test; i++) {
 
 		int actual_N = tam_N[i];
-        printf("\n===========================================");
-        printf("\n>>> TEST %d: N = %d terminos", i + 1, actual_N);
-        printf("\n===========================================\n");
+
+		int iter_actuales = 1000000000 / actual_N; // Ajustar iteraciones para tiempos razonables
+		if (iter_actuales < 1) iter_actuales = 1; // Al menos 1 iteracion
+        printf("\n=====================================================");
+        printf("\n>>> TEST %d: N = %d terminos & Iteraciones = %d", i + 1, actual_N, iter_actuales);
+        printf("\n=====================================================\n");
 
 
         /* ----------------------------------------------------------
@@ -172,10 +140,10 @@ int main() {
         {
             uint32_t* fib = (uint32_t*)malloc(actual_N * sizeof(uint32_t));
 
-            printf("\n--- VERSION 1: C puro ---\n");
+            if (SHOW_TIMES) printf("\n--- VERSION 1: C puro ---\n");
 
             inicio = clock();
-            for (int iter = 0; iter < ITERACIONES; iter++)
+            for (int iter = 0; iter < iter_actuales; iter++)
                 for (int s = 0; s < 4; s++)
                     fibonacci_c(fib, actual_N, inicioSeries[s]);
             fin = clock();
@@ -184,10 +152,10 @@ int main() {
             resultados[i][0] = tiempo;
 
             if (SHOW_OUTPUT) {
-                printf("Ultimos 15 terminos:\n");
+                printf("Primeros 15 terminos:\n");
                 // Antes de usar 'fib', verifica que la asignación fue exitosa
                 if (fib != NULL) {
-                    for (int i = actual_N - 15; i < actual_N; i++)
+                    for (int i = 0; i < 15; i++)
                         printf("  fib[%2d] = %u\n", i, fib[i]);
                 }
                 else {
@@ -195,8 +163,7 @@ int main() {
                 }
             }
 
-            if (SHOW_TIMES)
-				printf("Tiempo: %.4f segundos\n", tiempo);
+            if (SHOW_TIMES) printf("Tiempo: %.4f segundos\n", tiempo);
 
             free(fib);
         }
@@ -207,11 +174,11 @@ int main() {
         {
             uint32_t* fib = (uint32_t*)malloc(actual_N * sizeof(uint32_t));
 
-            printf("\n--- VERSION 2: Ensamblador x86 inline (MSVC) ---\n");
-            printf("(registros 32 bits: desbordamiento esperado a partir de fib[46])\n");
+            if (SHOW_TIMES) printf("\n--- VERSION 2: Ensamblador x86 inline (MSVC) ---\n");
+            if (SHOW_TIMES) printf("(registros 32 bits: desbordamiento esperado a partir de fib[46])\n");
 
             inicio = clock();
-            for (int iter = 0; iter < ITERACIONES; iter++)
+            for (int iter = 0; iter < iter_actuales; iter++)
                 for (int s = 0; s < 4; s++)
                     fibonacci_asm(fib, actual_N, inicioSeries[s]);
             fin = clock();
@@ -223,7 +190,7 @@ int main() {
                 printf("Primeros 15 terminos:\n");
                 // Antes de usar 'fib', verifica que la asignación fue exitosa
                 if (fib != NULL) {
-                    for (int i = actual_N - 15; i < actual_N; i++)
+                    for (int i = 0; i < 15; i++)
                         printf("  fib[%2d] = %u\n", i, fib[i]);
                 }
                 else {
@@ -231,8 +198,7 @@ int main() {
                 }
             }
             
-            if (SHOW_TIMES)
-                printf("Tiempo: %.4f segundos\n", tiempo);
+            if (SHOW_TIMES) printf("Tiempo: %.4f segundos\n", tiempo);
 
             free(fib);
         }
@@ -243,10 +209,10 @@ int main() {
         {
             uint32_t (*resultado)[4] = (uint32_t (*)[4])malloc(actual_N * sizeof(*resultado));
 
-            printf("\n--- VERSION 3: SSE2 (SIMD) - %d series en paralelo ---\n", NUM_SERIES);
+            if (SHOW_TIMES) printf("\n--- VERSION 3: SSE2 (SIMD) - %d series en paralelo ---\n", NUM_SERIES);
 
             inicio = clock();
-            for (int iter = 0; iter < ITERACIONES; iter++)
+            for (int iter = 0; iter < iter_actuales; iter++)
                 fibonacci_sse(inicioSeries, resultado, actual_N);
             fin = clock();
             tiempo = (double)(fin - inicio) / CLOCKS_PER_SEC;
@@ -258,30 +224,29 @@ int main() {
                 printf("%-4s  %-20s %-20s %-20s %-20s\n",
                     "i", "Serie0 (fib1=1)", "Serie1 (fib1=2)", "Serie2 (fib1=3)", "Serie3 (fib1=5)");
                 printf("------------------------------------------------------------------------------------\n");
-                for (int i = actual_N - 10; i < actual_N; i++) {
+                for (int i = 0; i < 10; i++) {
                     printf("%-4d  %-20u %-20u %-20u %-20u\n",
                         i, resultado[i][0], resultado[i][1], resultado[i][2], resultado[i][3]);
                 }
             }
             
-            if (SHOW_TIMES)
-                printf("Tiempo: %.4f segundos\n", tiempo);
+            if (SHOW_TIMES) printf("Tiempo: %.4f segundos\n", tiempo);
 
             free(resultado);
         }
     }
 
-    printf("\n\n============================================================\n");
+    printf("\n\n==============================================================\n");
     printf("   RESULTADOS FINALES - TIEMPO DE EJECUCION (Segundos)\n");
-    printf("============================================================\n");
+    printf("==============================================================\n");
     printf(" %-10s | %-12s | %-12s | %-12s\n", "N Terminos", "C (32-bit)", "ASM (32-bit)", "SSE (32-bit SIMD)");
-    printf("------------|--------------|--------------|--------------\n");
+    printf("------------|--------------|--------------|-------------------\n");
 
     for (int i = 0; i < num_test; i++) {
         printf(" %-10d | %-12.4f | %-12.4f | %-12.4f\n",
             tam_N[i], resultados[i][0], resultados[i][1], resultados[i][2]);
     }
-    printf("============================================================\n");
+    printf("=============================================================\n");
 
     return 0;
 }
