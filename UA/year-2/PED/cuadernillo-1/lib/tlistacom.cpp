@@ -117,7 +117,7 @@ TListaCom::~TListaCom() {
     while (nodo != nullptr) {
         this->primero = this->primero->siguiente;
         delete nodo;
-        nodo = nodo->siguiente;
+        nodo = this->primero;
     }
     this->ultimo = nullptr;
 }
