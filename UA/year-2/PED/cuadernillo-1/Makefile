@@ -38,7 +38,7 @@ test:
 	./evalua.sh
 
 tar:
-	tar -czvf tad.tar.gz $(SRC_DIR) $(LIB_DIR) $(INCLUDE_DIR) Makefile nombres.txt
+	tar -czvf cuad1.tgz $(SRC_DIR) $(LIB_DIR) $(INCLUDE_DIR) Makefile nombres.txt
 
 # Limpieza
 clean:
