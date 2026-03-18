@@ -34,6 +34,8 @@ private:
     int tamano;
     TComplejo error; // Necesario para devolver referencias cuando el índice falla
 
+    void copia(const TVectorCom &);
+
 };
 
 #endif // TVECTORCOM_H

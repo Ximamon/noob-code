@@ -1,26 +1,26 @@
 # -----------------------------------------------------------------------------
 # Configuración del Compilador
 # -----------------------------------------------------------------------------
-CC = g++ # Version: 13.2.0
-FLAGS =-g -O3 -Wall -Wextra -std=c++11 -I $(INCLUDE_DIR)
-EXEC = tad
+CC=g++ # Version: 13.2.0
+FLAGS=-g -O3 -Wall -Wextra -std=c++11 -I $(INCLUDE_DIR)
+EXEC=tad
 # Cambiar a "tad" si se quiere ejecutar test
 
 # -----------------------------------------------------------------------------
 # Directorios y Archivos
 # -----------------------------------------------------------------------------
-SRC_DIR = src
-LIB_DIR = lib
-BUILD_DIR = build
-INCLUDE_DIR = include
+SRC_DIR=src
+LIB_DIR=lib
+BUILD_DIR=build
+INCLUDE_DIR=include
 
 # Búsqueda de fuentes
 #SRCS = $(wildcard $(SRC_DIR)/*.cpp)
-SRCS = $(SRC_DIR)/tad.cpp
-LIBS = $(wildcard $(LIB_DIR)/*.cpp)
+SRCS=$(SRC_DIR)/tad.cpp
+LIBS=$(wildcard $(LIB_DIR)/*.cpp)
 
 # Generación de la lista de objetos
-OBJS = $(patsubst $(LIB_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(LIBS))
+OBJS=$(patsubst $(LIB_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(LIBS))
 
 # -----------------------------------------------------------------------------
 # Reglas Principales
@@ -37,6 +37,9 @@ run: $(EXEC)
 test:
 	./evalua.sh
 
+tar:
+	tar -czvf tad.tar.gz $(SRC_DIR) $(LIB_DIR) $(INCLUDE_DIR) Makefile nombres.txt
+
 # Limpieza
 clean:
 	rm -rf $(BUILD_DIR) $(EXEC) ComplejoPRUEBA/*.out TVectorCom_PRUEBA/*.out TListaCom_PRUEBA/*.out tad.dSYM
@@ -51,7 +54,7 @@ $(EXEC): $(OBJS)
 
 # Compilación de objetos desde SRC
 #$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
-	#$(CC) $(FLAGS) -c $< -o $@
+#	$(CC) $(FLAGS) -c $< -o $@
 
 # Compilación de objetos desde LIB
 $(BUILD_DIR)/%.o: $(LIB_DIR)/%.cpp | $(BUILD_DIR)

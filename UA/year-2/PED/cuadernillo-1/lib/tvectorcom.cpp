@@ -23,15 +23,7 @@ TVectorCom::TVectorCom(int t) {
 }
 
 TVectorCom::TVectorCom(const TVectorCom &v) {
-    this->tamano = v.tamano;
-    if (this->tamano > 0) {
-        this->c = new TComplejo[this->tamano];
-        for (int i = 0; i < this->tamano; i++) {
-            this->c[i] = v.c[i];
-        }
-    } else {
-        this->c = NULL;
-    }
+    copia(v);
 }
 
 TVectorCom::~TVectorCom() {
@@ -47,17 +39,7 @@ TVectorCom &TVectorCom::operator=(const TVectorCom &v) {
         if (this->c != NULL) {
             delete [] this->c;
         }
-
-        this->tamano = v.tamano;
-
-        if (this->tamano > 0) {
-            this->c = new TComplejo[this->tamano];
-            for (int i = 0; i < this->tamano; i++) {
-                this->c[i] = v.c[i];
-            }
-        } else {
-            this->c = NULL;
-        }
+        copia(v);
     }
     return *this;
 }
@@ -180,4 +162,16 @@ std::ostream & operator<<(std::ostream &os, const TVectorCom &v) {
     }
     os << "]";
     return os;
+}
+
+void TVectorCom::copia(const TVectorCom &v) {
+    this->tamano = v.tamano;
+    if (this->tamano > 0) {
+        this->c = new TComplejo[this->tamano];
+        for (int i = 0; i < this->tamano; i++) {
+            this->c[i] = v.c[i];
+        }
+    } else {
+        this->c = NULL;
+    }
 }
