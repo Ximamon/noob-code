@@ -27,18 +27,12 @@ TVectorCom::TVectorCom(const TVectorCom &v) {
 }
 
 TVectorCom::~TVectorCom() {
-    if (this->c != NULL) {
-        delete [] this->c;
-        this->c = NULL;
-        this->tamano = 0;
-    }
+    limpiar();
 }
 
 TVectorCom &TVectorCom::operator=(const TVectorCom &v) {
     if (this != &v) {
-        if (this->c != NULL) {
-            delete [] this->c;
-        }
+        limpiar();
         copia(v);
     }
     return *this;
@@ -173,5 +167,13 @@ void TVectorCom::copia(const TVectorCom &v) {
         }
     } else {
         this->c = NULL;
+    }
+}
+
+void TVectorCom::limpiar() {
+    if (this->c != NULL) {
+        delete [] this->c;
+        this->c = NULL;
+        this->tamano = 0;
     }
 }

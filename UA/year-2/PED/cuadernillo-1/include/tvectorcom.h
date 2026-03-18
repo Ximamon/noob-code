@@ -35,6 +35,7 @@ private:
     TComplejo error; // Necesario para devolver referencias cuando el índice falla
 
     void copia(const TVectorCom &);
+    void limpiar();
 };
 
 #endif // TVECTORCOM_H
