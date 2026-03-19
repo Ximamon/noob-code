@@ -2,6 +2,10 @@
 #include <vector>
 #include <fstream>
 #include <cstring>
+#include <algorithm>
+#include <limits>
+
+#define INFINITO std::numeric_limits<long>::max()
 
 struct args {
     bool t = false;
@@ -10,32 +14,8 @@ struct args {
     std::string filename;
 };
 
-struct Data{
-    std::vector<std::vector<int>> maze;
-    int fils, cols;
-};
-
-void maze_parser(int argc, char* argv[], args& arguments);
-void mostrar_uso();
-void leer_laberinto(const std::string& filename, int& n, int& m, std::vector<std::vector<int>>& maze);
-void show_maze(const std::vector<std::vector<int>>& maze);
-
-int main(int argc, char* argv[]) {
-
-    args arguments;
-    maze_parser(argc, argv, arguments);
-
-    int n, m;
-    std::vector<std::vector<int>> maze;
-    leer_laberinto(arguments.filename, n, m, maze);
-    show_maze(maze);
-
-    
-    return 0;
-}
-
 void mostrar_uso() {
-    std::cerr << "Usage:\n maze [-t] [--p2D] [--ignore-naive] -f file" << std::endl;
+    std::cerr << "Usage:\nmaze [-t] [--p2D] [--ignore-naive] -f file" << std::endl;
 }
 
 void maze_parser(int argc, char* argv[], args& arguments) {
@@ -93,3 +73,65 @@ void show_maze(const std::vector<std::vector<int>>& maze) {
         std::cout << std::endl;
     }
 }
+
+long maze_naive(const std::vector<std::vector<int>>& maze, int i, int j) {
+    if (i < 0 || j < 0 || maze[i][j] == 0)
+        return INFINITO;
+    else {
+        if (i == 0 && j == 0)
+            return 1;
+        else {
+
+            // Definimos los tres posibles movimientos: diagonal, izquierda y arriba
+            long s1 = INFINITO; // Izquierda (maze[i][j-1])
+            long s2 = INFINITO; // Arriba (maze[i-1][j])
+            long s3 = INFINITO; // Diagonal (maze[i-1][j-1])
+
+            // Vemos si se puede ir a la izquierda
+            if (j > 0 && maze[i][j-1] == 1)
+                s1 = maze_naive(maze, i, j - 1);
+
+            // Vemos si se puede ir hacia arriba
+            if (i > 0 && maze[i-1][j] == 1)
+                s2 = maze_naive(maze, i - 1, j);
+
+            // Vemos si se puede ir en diagonal
+            if (i > 0 && j > 0 && maze[i-1][j-1] == 1)
+                s3 = maze_naive(maze, i - 1, j - 1);
+            
+            // Devolvemos el mínimo de los tres movimientos más uno (por el movimiento actual)
+            if (s1 != INFINITO || s2 != INFINITO || s3 != INFINITO)
+                return std::min(s1, std::min(s2, s3)) + 1;
+            else
+                return INFINITO;
+        }
+    }
+}
+
+int main(int argc, char* argv[]) {
+
+    args arguments;
+    maze_parser(argc, argv, arguments);
+
+    int n, m;
+    std::vector<std::vector<int>> maze;
+    leer_laberinto(arguments.filename, n, m, maze);
+    // show_maze(maze);
+
+    // Gestion de maze_naive
+    if (arguments.ignore_naive)
+        std::cout << "- ";
+    else {
+        long res_naive = maze_naive(maze, n - 1, m - 1);
+        if (res_naive == INFINITO)
+            std::cout << "0 ";
+        else
+            std::cout << res_naive << " ";
+    }
+
+    std::cout << "? ? ? " << std::endl; // Placeholder para memo y iterativo
+
+    
+    return 0;
+}
+
