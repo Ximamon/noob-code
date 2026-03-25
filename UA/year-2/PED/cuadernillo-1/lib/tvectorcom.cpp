@@ -93,7 +93,7 @@ int TVectorCom::Ocupadas() const {
     return count;
 }
 
-bool TVectorCom::ExisteCom(TComplejo &comp) {
+bool TVectorCom::ExisteCom(const TComplejo &comp) const {
     for (int i = 0; i < this->tamano; i++) {
         if (this->c[i] == comp) {
             return true;

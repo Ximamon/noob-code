@@ -26,12 +26,12 @@ public:
 
     int Tamano() const;
     int Ocupadas() const;
-    bool ExisteCom(TComplejo &);
+    bool ExisteCom(const TComplejo &) const;
     void MostrarComplejos(double) const;
     bool Redimensionar(int);
 private:
-    TComplejo *c;
-    int tamano;
+    TComplejo *c{};
+    int tamano{};
     TComplejo error; // Necesario para devolver referencias cuando el índice falla
 
     void copia(const TVectorCom &);

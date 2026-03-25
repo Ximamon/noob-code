@@ -105,7 +105,7 @@ TListaCom::TListaCom(const TListaCom & otra) {
             this->ultimo = nodoNuevo;
         } else {
             this->ultimo->siguiente = nodoNuevo;
-            nodoNuevo->siguiente = this->ultimo;
+            nodoNuevo->anterior = this->ultimo;
             this->ultimo = nodoNuevo;
         }
         nodo = nodo->siguiente;
