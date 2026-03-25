@@ -6,6 +6,7 @@
 #include <limits>
 
 #define INFINITO std::numeric_limits<long>::max()
+#define SENTINEL -1
 
 struct args {
     bool t = false;
@@ -108,6 +109,58 @@ long maze_naive(const std::vector<std::vector<int>>& maze, int i, int j) {
     }
 }
 
+long maze_memo(const std::vector<std::vector<int>>&maze, int i, int j, std::vector<std::vector<long>>& memo) {
+    // Si ya hemos calculado el resultado para esta posición, lo devolvemos
+    if (memo[i][j] != SENTINEL)
+        return memo[i][j]; 
+    else {
+        if (maze[i][j] == 0)
+            return memo[i][j] = INFINITO; // Si es un muro, devolvemos infinito
+        else {
+            if (i == 0 && j == 0)
+                return memo[i][j] = 1; // Si estamos en la posición inicial, el número de pasos es 1
+            else {
+                // Definimos los tres posibles movimientos: diagonal, izquierda y arriba
+                long s1 = INFINITO; // Izquierda (maze[i][j-1])
+                long s2 = INFINITO; // Arriba (maze[i-1][j])
+                long s3 = INFINITO; // Diagonal (maze[i-1][j-1])
+
+                // Vemos si se puede ir a la izquierda
+                if (j > 0)
+                    s1 = maze_memo(maze, i, j - 1, memo);
+                    
+                // Vemos si se puede ir hacia arriba
+                if (i > 0)
+                    s2 = maze_memo(maze, i - 1, j, memo);
+
+                // Vemos si se puede ir en diagonal
+                if (i > 0 && j > 0)
+                    s3 = maze_memo(maze, i - 1, j - 1, memo);
+                    
+                // Devolvemos el mínimo de los tres movimientos más uno (por el movimiento actual)
+                if (s1 != INFINITO || s2 != INFINITO || s3 != INFINITO)
+                    return memo[i][j] = std::min(s1, std::min(s2, s3)) + 1;
+                else
+                    return memo[i][j] = INFINITO;
+        }
+        }
+    }
+}
+
+void memo_print(const std::vector<std::vector<long>>& memo) {
+    for (const auto& row : memo) {
+        for (const auto& val : row) {
+            if (val == INFINITO)
+                std::cout << "X ";
+            else if (val == SENTINEL)
+                std::cout << "- ";
+            else
+                std::cout << val << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
 int main(int argc, char* argv[]) {
 
     args arguments;
@@ -129,8 +182,21 @@ int main(int argc, char* argv[]) {
             std::cout << res_naive << " ";
     }
 
-    std::cout << "? ? ? " << std::endl; // Placeholder para memo y iterativo
+    // Gestion de maze_memo
+    std::vector<std::vector<long>> memo(n, std::vector<long>(m, SENTINEL));
+    long res_memo = maze_memo(maze, n - 1, m - 1, memo);
+    if (res_memo == INFINITO)
+        std::cout << "0 ";
+    else        
+        std::cout << res_memo << " ";
 
+    std::cout << "? ? " << std::endl; // Placeholder para memo y iterativo
+
+
+    if (arguments.t) {
+        std::cout << "Memoization table:" << std::endl;
+	    memo_print(memo);
+    }
     
     return 0;
 }
