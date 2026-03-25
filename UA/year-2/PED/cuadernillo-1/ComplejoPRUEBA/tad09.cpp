@@ -7,21 +7,21 @@ using namespace std;
 int
 main(void)
 {
-  TComplejo a;
+  TComplejo a(1,2);
   TComplejo b(a);
-  TComplejo c;
-  c = a;
   
-  if(a == b)
+  if( a.Arg() == b.Arg() )
     cout << "SI" << endl;
   else
     cout << "NO" << endl;
 
-  if(a == c)
+  b.Re(2);
+  b.Im(3);
+
+  if( a.Arg() == b.Arg() )
     cout << "SI" << endl;
   else
     cout << "NO" << endl;
-
 
   return 0;
 }

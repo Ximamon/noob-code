@@ -8,16 +8,25 @@ int
 main(void)
 {
   TComplejo a;
-  TComplejo b(a);
-  TComplejo c;
-  c = a;
+  TComplejo b(1,1);
+  TComplejo c(b);
+  
   
   if(a == b)
     cout << "SI" << endl;
   else
     cout << "NO" << endl;
 
-  if(a == c)
+  b.~TComplejo();
+
+ if(a == b)
+    cout << "SI" << endl;
+  else
+    cout << "NO" << endl;
+
+  c.~TComplejo();
+
+  if(b == c)
     cout << "SI" << endl;
   else
     cout << "NO" << endl;
@@ -25,3 +34,14 @@ main(void)
 
   return 0;
 }
+
+
+
+
+
+
+
+
+
+
+

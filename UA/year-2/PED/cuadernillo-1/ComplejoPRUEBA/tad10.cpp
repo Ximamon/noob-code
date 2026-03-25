@@ -7,19 +7,19 @@ using namespace std;
 int
 main(void)
 {
-  TComplejo a, s, r, m;
+  TComplejo a, s, r, m, t(2,2);
   double d;
 
   d=0;
-  s = a + d;
+  s = d + a;
   cout << s << endl;
 
-  r = a - d;
-  cout << r << endl;
-
-  m = a * d;
+  m = d * a;
   cout << m << endl;
     
+  r = 1 - t;
+  cout << r << endl;
+
   return 0;
 
 }
