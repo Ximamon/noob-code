@@ -1,3 +1,5 @@
+// Julian Hinojosa Gil, 48795869N
+
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -75,7 +77,12 @@ void show_maze(const std::vector<std::vector<int>>& maze) {
     }
 }
 
-long maze_naive(const std::vector<std::vector<int>>& maze, int i, int j) {
+long maze_naive(const std::vector<std::vector<int>>& maze, int i, int j, std::vector<std::vector<long>>& X, int k) {
+    if (k >= X[i][j])
+        return INFINITO;
+
+    X[i][j] = k;
+    
     if (i < 0 || j < 0 || maze[i][j] == 0)
         return INFINITO;
     else {
@@ -90,15 +97,15 @@ long maze_naive(const std::vector<std::vector<int>>& maze, int i, int j) {
 
             // Vemos si se puede ir a la izquierda
             if (j > 0 && maze[i][j-1] == 1)
-                s1 = maze_naive(maze, i, j - 1);
+                s1 = maze_naive(maze, i, j - 1, X, k + 1);
 
             // Vemos si se puede ir hacia arriba
             if (i > 0 && maze[i-1][j] == 1)
-                s2 = maze_naive(maze, i - 1, j);
+                s2 = maze_naive(maze, i - 1, j, X, k + 1);
 
             // Vemos si se puede ir en diagonal
             if (i > 0 && j > 0 && maze[i-1][j-1] == 1)
-                s3 = maze_naive(maze, i - 1, j - 1);
+                s3 = maze_naive(maze, i - 1, j - 1, X, k + 1);
             
             // Devolvemos el mínimo de los tres movimientos más uno (por el movimiento actual)
             if (s1 != INFINITO || s2 != INFINITO || s3 != INFINITO)
@@ -161,6 +168,123 @@ void memo_print(const std::vector<std::vector<long>>& memo) {
     }
 }
 
+long maze_it_matrix(const std::vector<std::vector<int>>& maze, std::vector<std::vector<long>>& M) {
+    int n = maze.size();
+    int m = maze[0].size();
+
+    if (maze[0][0] == 0) return INFINITO;
+
+    M[0][0] = 1;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if ((i == 0 && j == 0) || maze[i][j] == 0)
+                continue;
+
+            long s1 = INFINITO;
+            long s2 = INFINITO;
+            long s3 = INFINITO;
+
+            if (j > 0)
+                s1 = M[i][j-1];
+
+            if (i > 0)
+                s2 = M[i-1][j];
+            
+            if (i > 0 && j > 0)
+                s3 = M[i-1][j-1];
+
+            long minimo = std::min(s1, std::min(s2 , s3));
+
+            if (minimo != INFINITO)
+                M[i][j] = minimo + 1;
+        }
+    }
+    return M[n-1][m-1];
+}
+
+long maze_it_vector(const std::vector<std::vector<int>>& maze) {
+    int n = maze.size();
+    int m = maze[0].size();
+
+    if (maze[0][0] == 0) return INFINITO;
+
+    std::vector<long> prev(m, INFINITO);
+    std::vector<long> curr(m, INFINITO);
+
+    for (int i = 0; i < n; i++) {
+        for (auto& val : curr) val = INFINITO;
+
+        if (i == 0)
+            curr[0] = 1;
+
+        for (int j = 0; j < m; j++) {
+            if ((i == 0 && j == 0) || maze[i][j] == 0)
+                continue;
+
+            long s1 = INFINITO;
+            long s2 = INFINITO;
+            long s3 = INFINITO;
+
+            if (j > 0)
+                s1 = curr[j-1];
+
+            if (i > 0)
+                s2 = prev[j];
+
+            if (i > 0 && j > 0)
+                s3 = prev[j-1];
+
+            long minimo = std::min(s1, std::min(s2, s3));
+
+            if (minimo != INFINITO)
+                curr[j] = minimo + 1;
+        }
+
+        std::swap(prev, curr);
+    }
+
+    return prev[m-1];
+}
+
+void print_p2D(const std::vector<std::vector<int>>& maze, const std::vector<std::vector<long>>& M_it) {
+    int n = maze.size();
+    int m = maze[0].size();
+
+    if (M_it[n-1][m-1] == INFINITO) {
+        std::cout << "0" << std::endl;
+        return;
+    }
+
+    std::vector<std::string> maze_draw(n, std::string(m, ' '));
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            maze_draw[i][j] = maze[i][j] ? '1' : '0';
+
+    int i = n - 1;
+    int j = m - 1;
+
+    maze_draw[i][j] = '*';
+
+    while (i > 0 || j > 0) {
+        long curr = M_it[i][j];
+
+        if (i > 0 && j > 0 && M_it[i-1][j-1] == curr - 1) {
+            i--;
+            j--;
+        }
+        else if (i > 0 && M_it[i-1][j] == curr - 1)
+            i--;
+        else if (j > 0 && M_it[i][j-1] == curr - 1)
+            j--;
+
+        maze_draw[i][j] = '*';
+    }
+
+    for (int row = 0; row < n; row++)
+        std::cout << maze_draw[row] << std::endl;
+}
+
 int main(int argc, char* argv[]) {
 
     args arguments;
@@ -175,7 +299,8 @@ int main(int argc, char* argv[]) {
     if (arguments.ignore_naive)
         std::cout << "- ";
     else {
-        long res_naive = maze_naive(maze, n - 1, m - 1);
+        std::vector<std::vector<long>> X(n, std::vector<long>(m, INFINITO));
+        long res_naive = maze_naive(maze, n - 1, m - 1, X, 1);
         if (res_naive == INFINITO)
             std::cout << "0 ";
         else
@@ -190,12 +315,30 @@ int main(int argc, char* argv[]) {
     else        
         std::cout << res_memo << " ";
 
-    std::cout << "? ? " << std::endl; // Placeholder para memo y iterativo
 
+    // Gestion de maze_it_matrix
+    std::vector<std::vector<long>> M_it(n, std::vector<long>(m, INFINITO));
+    long res_it = maze_it_matrix(maze, M_it);
+    if (res_it == INFINITO)
+        std::cout << "0 ";
+    else
+        std::cout << res_it << " ";
+
+    long res_vec = maze_it_vector(maze);
+    if (res_vec == INFINITO)
+        std::cout << "0" << std::endl;
+    else
+        std::cout << res_vec << std::endl;
+
+    if (arguments.p2D)
+        print_p2D(maze, M_it);
 
     if (arguments.t) {
         std::cout << "Memoization table:" << std::endl;
 	    memo_print(memo);
+
+        std::cout << "Iterative table: " << std::endl;
+        memo_print(M_it);
     }
     
     return 0;

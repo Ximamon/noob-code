@@ -8,7 +8,7 @@ all:  maze
 maze: maze.cc
 	${CC} ${OPTS} -o maze maze.cc
 
-tar: maze.cc maze.gpi makefile
+tar: maze.cc makefile
 	tar cvfz 48795869N.tar.gz maze.cc makefile
 
 clean: 
