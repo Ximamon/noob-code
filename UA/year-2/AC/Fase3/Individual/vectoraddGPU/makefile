@@ -8,7 +8,7 @@ NVCC_FLAGS = -O2
 LIBS = --cudart shared
 
 # Nombre del archivo principal (sin extensión)
-TARGET = vector_add_1d
+TARGET = vecadd
 
 # Carpetas del proyecto
 SRC_DIR = src
@@ -44,9 +44,9 @@ setup: check_dirs
 	fi
 
 # 2. FASE DE COMPILACIÓN: Compila el código .cu
-$(BUILD_DIR)/$(TARGET): $(SRC_DIR)/$(TARGET).cu | check_dirs
+$(BUILD_DIR)/$(TARGET): $(SRC_DIR)/$(TARGET).cu $(SRC_DIR)/vecadd_gold.cpp | check_dirs
 	@echo "--- [2/3] Compilando $(TARGET).cu ---"
-	$(NVCC) $(NVCC_FLAGS) $< -o $@ $(LIBS)
+	$(NVCC) $(NVCC_FLAGS) $^ -o $@ $(LIBS)
 	@echo "Compilación exitosa."
 
 # ==========================================

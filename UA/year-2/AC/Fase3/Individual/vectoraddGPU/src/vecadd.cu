@@ -40,7 +40,8 @@
 #include <math.h>
 #include <assert.h>
 
-#define VECTOR_ELEMENTS 30000000
+// #define VECTOR_ELEMENTS 30000000
+#define VECTOR_ELEMENTS 1000000
 #define COMPUTE_N_ELEMENTS_PER_THREAD 1
 
 // includes, project
@@ -48,17 +49,24 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include "vecadd.h"
-#include <Windows.h>
+// #include <Windows.h>
 
 #define DEBUG_ 1
 
-typedef LARGE_INTEGER timeStamp;
+#ifdef _WIN32
+    #include <Windows.h>
+    typedef LARGE_INTEGER timeStamp;
+#else
+    #include <sys/time.h>
+    #include <stddef.h>
+#endif
+
 double getTime();
 
 __global__ void vecadd(float* C, const float* A, const float* B)
 {
     // ===================================================================
-    // Calcula el índice para acceder a cada elemento
+    // Calcula el ï¿½ndice para acceder a cada elemento
     // Calcula la suma de las posiciones correspondientes y almacena el resultado
     // ===================================================================
 
@@ -87,7 +95,9 @@ int
 main(int argc, char** argv)
 {
     runTest(argc, argv);
-		getchar();
+    #ifdef _WIN32
+        getchar();
+    #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,7 +123,7 @@ runTest(int argc, char** argv)
     printf("    A: %d elements\n", VECTOR_ELEMENTS);
     printf("    B: %d elements\n", VECTOR_ELEMENTS);
 
-	printf(" Required memory for %d elements: %d MB ",VECTOR_ELEMENTS, (VECTOR_ELEMENTS*3*sizeof(float)) / (1024*1024) );
+	printf(" Required memory for %d elements: %d MB ",VECTOR_ELEMENTS, (int)(VECTOR_ELEMENTS*3*sizeof(float)) / (1024*1024) );
 
     // Allocate output vector (host memory)
     C = (float *) malloc(VECTOR_ELEMENTS * sizeof(float));
@@ -216,15 +226,15 @@ runTest(int argc, char** argv)
 		free(reference);
     }
 
-	printf("Tiempo ejecución GPU (sin incluir transferencia de datos): %fs\n", \
+	printf("Tiempo ejecuccion GPU (sin incluir transferencia de datos): %fs\n", \
 	 gpu_end_time - gpu_start_time);
-	printf("Tiempo ejecución GPU (con transferencia de datos): %fs\n", \
+	printf("Tiempo ejecuccion GPU (con transferencia de datos): %fs\n", \
 	 gpu_end_time_trans - gpu_start_time_trans);
-	printf("Tiempo de ejecución en la CPU                          : %fs\n", \
+	printf("Tiempo de ejecuccion en la CPU                          : %fs\n", \
 	 cpu_end_time - cpu_start_time);
 
 
-	printf("Se ha conseguido un factor de aceleración %fx utilizando CUDA (sin considerar transferencias) \n", (cpu_end_time - cpu_start_time) / (gpu_end_time - gpu_start_time) );
+	printf("Se ha conseguido un factor de aceleracion %fx utilizando CUDA (sin considerar transferencias) \n", (cpu_end_time - cpu_start_time) / (gpu_end_time - gpu_start_time) );
     // clean up memory
     free(A);
     free(B); 
@@ -236,12 +246,19 @@ runTest(int argc, char** argv)
 }
 
 /* Funciones auxiliares */
+/* Funciones auxiliares */
 double getTime()
 {
-	timeStamp start;
-	timeStamp dwFreq;
-	QueryPerformanceFrequency(&dwFreq);
-	QueryPerformanceCounter(&start);
-	return double(start.QuadPart) / double(dwFreq.QuadPart);
+#ifdef _WIN32
+    timeStamp start;
+    timeStamp dwFreq;
+    QueryPerformanceFrequency(&dwFreq);
+    QueryPerformanceCounter(&start);
+    return double(start.QuadPart) / double(dwFreq.QuadPart);
+#else
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    return (double)t.tv_sec + (double)t.tv_usec / 1000000.0;
+#endif
 }
 
