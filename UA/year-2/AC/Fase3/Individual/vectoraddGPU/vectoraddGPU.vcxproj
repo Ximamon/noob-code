@@ -11,13 +11,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="vecadd.cu" />
+    <CudaCompile Include="src\vecadd.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="vecadd.h" />
+    <ClInclude Include="src\vecadd.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="vecadd_gold.cpp" />
+    <ClCompile Include="src\vecadd_gold.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B7A6A20A-6284-10C1-5932-626E4FBFCA43}</ProjectGuid>
