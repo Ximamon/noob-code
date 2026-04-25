@@ -3,13 +3,13 @@
 OPTS = -Wall -Wextra -O3 -std=c++0x
 CC = g++
 
-all:  maze
+all:  maze_greedy
 
-maze: maze.cc
-	${CC} ${OPTS} -o maze maze.cc
+maze_greedy: maze_greedy.cc
+	${CC} ${OPTS} -o maze_greedy maze_greedy.cc
 
-tar: maze.cc makefile
-	tar cvfz 48795869N.tar.gz maze.cc makefile
+tar: maze_greedy.cc makefile
+	tar cvfz 48795869N.tar.gz maze_greedy.cc makefile
 
 clean: 
-	rm -rf maze maze.dSYM *~
+	rm -rf maze_greedy maze_greedy.dSYM *~
