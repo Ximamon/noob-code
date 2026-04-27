@@ -6,20 +6,17 @@
 #define TABBCOM_H
 #include "tcomplejo.h"
 #include "tvectorcom.h"
-
-class TNodoABB {
-public:
-    TNodoABB();
-    TNodoABB(const TNodoABB &);
-    ~TNodoABB();
-    TNodoABB &operator=(const TNodoABB &);
-
-private:
-    TComplejo item;
-    TABBCom iz, de;
-};
+#include <iostream>
 
 class TABBCom {
+private:
+    // Puntero al nodo
+    TNodoABB *nodo;
+
+    // Métodos auxiliares (les pongo const al final porque los métodos que los llaman son const)
+    void InordenAux(TVectorCom &, int &) const;
+    void PreordenAux(TVectorCom &, int &) const;
+    void PostordenAux(TVectorCom &, int &) const;
 public:
     TABBCom();
     TABBCom(const TABBCom &);
@@ -32,7 +29,7 @@ public:
     bool Borrar(const TComplejo &);
     bool Buscar(const TComplejo &) const;
 
-    TComplejo raiz();
+    TComplejo Raiz() const;
     int Altura() const;
     int Nodos() const;
     int NodosHoja() const;
@@ -43,6 +40,19 @@ public:
     TVectorCom Niveles() const;
 
     friend std::ostream &operator<<(std::ostream &, const TABBCom &);
+};
+
+class TNodoABB {
+    // Permitimos que TABBCom acceda a la parte privada de TNodoABB
+    friend class TABBCom;
+private:
+    TComplejo item;
+    TABBCom iz, de;
+
+    TNodoABB();
+    TNodoABB(const TNodoABB &);
+    ~TNodoABB();
+    TNodoABB &operator=(const TNodoABB &);
 };
 
 #endif //TABBCOM_H
