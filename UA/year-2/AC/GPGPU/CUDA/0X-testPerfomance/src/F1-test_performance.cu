@@ -1,0 +1,148 @@
+/* =========================================================================================
+ * REGISTRO DE RENDIMIENTO (Tiempos en milisegundos)
+ * Hardware: GPGPUSim SM7_QV100 | Tamaño del Grid/Bloque: 256 hilos por bloque, bloques calculados para cubrir N elementos
+ * =========================================================================================
+ * Versión |      T1       |       T2      |       T3      |       T4      |       T5      |     T. Min    | Ciclos Sim. | IPC Sim.  | Descripción
+ * --------|---------------|---------------|---------------|---------------|---------------|---------------|-------------|-----------|---------------------------------
+ * Fase 1  | 367000.000 ms | 358000.000 ms | 354000.000 ms | 358000.000 ms | 362000.000 ms | 354000.000 ms |    31665    | 3160.0098 | Implementación base (Naive)
+ * Fase 2  |               |               |               |               |               |               |       |           | Memoria compartida
+ * Fase 3  |               |               |               |               |               |               |       |           | Unrolling
+ * ========================================================================================= */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+// Kernel de la GPU (Cap 2: Mapeo 1D)
+__global__ void filtro_condicional(float *in, float *out, int N) {
+    // 1. Identidad del hilo (Mapeo 1D)
+    int i = blockIdx.x * blockDim.x + threadIdx.x; // Formula universal para 1D
+
+    // 2. Verificacion de limites
+    if (i < N) {
+        // 3. Lógica con divergencia intencional (Cap 4)
+        if (in[i] > 0.5) 
+            // Carda de trabajo PESADA
+            out[i] = sinf(in[i]) * cosf(in[i]) + sqrtf(in[i]);
+        else
+            // Carga de trabajo LIGERA
+            out[i] = in[i] * 2.0f;
+    }
+}
+
+
+// Codigo del Host (CPU)
+int main() {
+    // Tamaño para GPGPU-Sim
+    // N = 1073741824 (Mil Millones) -> ??s (Megatest, no se ejecuta en tiempo razonable)
+    // N = 2097152 (2 Millones)      -> ~355-347s (Fase 2, baseline)
+    int N = 2097152;
+    size_t size = N * sizeof(float);
+
+    // Punteros para el Host(CPU) y el Device(GPU)
+    float *h_in, *h_out;
+    float *d_in, *d_out;
+
+    // 1. Asignacion de memoria en el Host
+    h_in = (float *)malloc(size);
+    h_out = (float *)malloc(size);
+
+    // Inicializar datos con valores aleatorios entre 0 y 1
+    for (int i = 0; i < N; i++)
+        h_in[i] = (float)rand() / (float)RAND_MAX;
+        
+    // 2. Asignacion de memoria en el Device
+    cudaMalloc((void**)&d_in, size);
+    cudaMalloc((void**)&d_out, size); 
+
+    // 3. Transferir datos: Host -> Device
+    cudaMemcpy(d_in, h_in, size, cudaMemcpyHostToDevice);
+
+    // 4. Configurar la ejecucion (GRID y Bloques)
+    int hilosPorBloque = 256;
+    // Formula maestra para asegurar suficientes bloques: ceil(N / hilosPorBloque)
+    int bloquesPorGrid = (N + hilosPorBloque - 1) / hilosPorBloque;
+
+    // 5. Configurar los eventos de CUDA para medir el tiempo
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    // // 6. Lanzar kernel y medir
+    // printf("Lanzando Kernel con %d bloques de %d hilos...\n", bloquesPorGrid, hilosPorBloque);
+
+    // cudaEventRecord(start);
+    // filtro_condicional<<<bloquesPorGrid, hilosPorBloque>>>(d_in, d_out, N);
+    // cudaEventRecord(stop);
+
+    // // Sincronizar y calcular tiempo
+    // cudaEventSynchronize(stop);
+    // float ms = 0;
+    // cudaEventElapsedTime(&ms, start, stop);
+
+    // printf("¡Ejecucion completada!\n");
+    // printf("Tiempo del kernel: \n\t%f ms\n\t%f s\n", ms, ms/1000);
+
+    // =====================================================================
+    // 6. LANZAR KERNEL Y MEDIR (MODIFICADO PARA PROFILING PROFESIONAL)
+    // =====================================================================
+    printf("Configuracion: %d bloques de %d hilos.\n\n", bloquesPorGrid, hilosPorBloque);
+
+    // --- FASE A: WARM-UP (Calentamiento) ---
+    printf("Realizando 'Warm-up' de la GPU...\n");
+    filtro_condicional<<<bloquesPorGrid, hilosPorBloque>>>(d_in, d_out, N);
+    cudaDeviceSynchronize(); // Esperamos a que termine para limpiar el contexto
+    
+    // --- FASE B: BUCLE DE MEDICIÓN ---
+    const int NUM_EJECUCIONES = 5;
+    float tiempos[NUM_EJECUCIONES];
+    float suma_tiempos = 0.0f;
+    float tiempo_minimo = 999999.0f; // Inicializamos alto para buscar el mínimo
+
+    printf("Iniciando %d ejecuciones cronometradas...\n", NUM_EJECUCIONES);
+    
+    for (int i = 0; i < NUM_EJECUCIONES; i++) {
+        cudaEventRecord(start);
+        
+        filtro_condicional<<<bloquesPorGrid, hilosPorBloque>>>(d_in, d_out, N);
+        
+        cudaEventRecord(stop);
+        cudaEventSynchronize(stop); // Fundamental sincronizar en cada iteración
+
+        // Extraer tiempo de esta iteración
+        float ms = 0;
+        cudaEventElapsedTime(&ms, start, stop);
+        
+        tiempos[i] = ms;
+        suma_tiempos += ms;
+        if (ms < tiempo_minimo) {
+            tiempo_minimo = ms;
+        }
+    }
+
+    // --- FASE C: CÁLCULO DE ESTADÍSTICAS ---
+    float media = suma_tiempos / NUM_EJECUCIONES;
+
+    printf("\n¡Ejecucion completada!\n");
+    printf("--------------------------------------------------\n");
+    printf("T1: %.3f ms | T2: %.3f ms | T3: %.3f ms | T4: %.3f ms | T5: %.3f ms\n", 
+           tiempos[0], tiempos[1], tiempos[2], tiempos[3], tiempos[4]);
+    printf("--------------------------------------------------\n");
+    printf("TIEMPO MEDIO  : %.3f ms\n", media);
+    printf("TIEMPO MÍNIMO : %.3f ms\n", tiempo_minimo);
+    printf("--------------------------------------------------\n");
+    // =====================================================================
+
+    // 7. Transferir resultados: Device -> Host
+    cudaMemcpy(h_out, d_out, size, cudaMemcpyDeviceToHost);
+
+    // 8. Limpiar memoria
+    cudaFree(d_in);
+    cudaFree(d_out);
+    free(h_in);
+    free(h_out);
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
+
+    return 0;
+}
