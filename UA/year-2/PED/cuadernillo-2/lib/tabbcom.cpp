@@ -4,6 +4,7 @@
 
 #include "../include/tabbcom.h"
 #include <queue>
+#include <cmath>
 
 TNodoABB::TNodoABB() {
     this->item = TComplejo();
