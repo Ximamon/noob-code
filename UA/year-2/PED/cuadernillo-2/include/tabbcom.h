@@ -8,6 +8,8 @@
 #include "tvectorcom.h"
 #include <iostream>
 
+class TNodoABB;
+
 class TABBCom {
 private:
     // Puntero al nodo
@@ -17,6 +19,8 @@ private:
     void InordenAux(TVectorCom &, int &) const;
     void PreordenAux(TVectorCom &, int &) const;
     void PostordenAux(TVectorCom &, int &) const;
+    bool EsMenor(const TComplejo &c1, const TComplejo &c2) const;
+    bool EsMayor(const TComplejo &c1, const TComplejo &c2) const;
 public:
     TABBCom();
     TABBCom(const TABBCom &);
