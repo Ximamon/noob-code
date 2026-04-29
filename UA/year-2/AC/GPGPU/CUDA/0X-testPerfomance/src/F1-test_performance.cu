@@ -34,10 +34,10 @@ __global__ void filtro_condicional(float *in, float *out, int N) {
 
 // Codigo del Host (CPU)
 int main() {
-    // Tamaño para GPGPU-Sim
-    // N = 1073741824 (Mil Millones) -> ??s (Megatest, no se ejecuta en tiempo razonable)
-    // N = 2097152 (2 Millones)      -> ~355-347s (Fase 2, baseline)
-    int N = 2097152;
+    // Tamaño
+    // N = 536870912 (512 Millones)      -> ~??s (Baseline para Colab T4, no se ejecuta en tiempo razonable en GPGPU-Sim)
+    // N = 4194304 (4 Millones)          -> ~??s (baseline para GPUGPU-Sim, no se ejecuta en tiempo razonable en Colab)
+    int N = 4194304;
     size_t size = N * sizeof(float);
 
     // Punteros para el Host(CPU) y el Device(GPU)
@@ -69,25 +69,10 @@ int main() {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
-    // // 6. Lanzar kernel y medir
-    // printf("Lanzando Kernel con %d bloques de %d hilos...\n", bloquesPorGrid, hilosPorBloque);
-
-    // cudaEventRecord(start);
-    // filtro_condicional<<<bloquesPorGrid, hilosPorBloque>>>(d_in, d_out, N);
-    // cudaEventRecord(stop);
-
-    // // Sincronizar y calcular tiempo
-    // cudaEventSynchronize(stop);
-    // float ms = 0;
-    // cudaEventElapsedTime(&ms, start, stop);
-
-    // printf("¡Ejecucion completada!\n");
-    // printf("Tiempo del kernel: \n\t%f ms\n\t%f s\n", ms, ms/1000);
-
     // =====================================================================
     // 6. LANZAR KERNEL Y MEDIR (MODIFICADO PARA PROFILING PROFESIONAL)
     // =====================================================================
-    printf("Configuracion: %d bloques de %d hilos.\n\n", bloquesPorGrid, hilosPorBloque);
+    printf("Configuracion: %d bloques de %d hilos. N = %ld\n\n", bloquesPorGrid, hilosPorBloque, N);
 
     // --- FASE A: WARM-UP (Calentamiento) ---
     printf("Realizando 'Warm-up' de la GPU...\n");
