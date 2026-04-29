@@ -12,25 +12,18 @@
  * Fase 3   | 366000.000 ms | 373000.000 ms | 386000.000 ms | 374000.000 ms | 369000.000 ms | 366000.000 ms |    30750    |   1.4842  | Ordenamiento de datos para reducir divergencia (sort en el Host)
  * *Fase 3.1| 366000.000 ms | 373000.000 ms | 386000.000 ms | 374000.000 ms | 369000.000 ms | 366000.000 ms |    30750    |   1.4842  | Optimización: Bloques de 32x16 hilos para aumentar ocupación (en lugar de 16x16)
  * ========================================================================================= */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <algorithm>
 
-// Kernel de la GPU (Cap 3: Mapeo 2D)
-__global__ void filtro_condicional(float *in, float *out, int width, int height) {
-    // 1. Identidad del hilo en File y Columna (Mapeo 2D)
-    int col = blockIdx.x * blockDim.x + threadIdx.x;
-    int row = blockIdx.y * blockDim.y + threadIdx.y;
-    
+// Kernel de la GPU (Cap 2: Mapeo 1D)
+__global__ void filtro_condicional(float *in, float *out, int N) {
+    // 1. Identidad del hilo (Mapeo 1D)
+    int i = blockIdx.x * blockDim.x + threadIdx.x; // Formula universal para 1D
 
-    // 2. Verificacion de limites en 2D
-    if (col < width && row < height) {
-        // 3. Aplanamiento de 2D a 1D para acceder a memoria
-        int i = row * width + col;
-
-        // 4. Lógica con divergencia intencional (Cap 4)
+    // 2. Verificacion de limites
+    if (i < N) {
+        // 3. Lógica con divergencia intencional (Cap 4)
         if (in[i] > 0.5) 
             // Carda de trabajo PESADA
             out[i] = sinf(in[i]) * cosf(in[i]) + sqrtf(in[i]);
@@ -46,9 +39,7 @@ int main() {
     // Tamaño
     // N = 536870912 (512 Millones)      -> ~??s (Baseline para Colab T4, no se ejecuta en tiempo razonable en GPGPU-Sim)
     // N = 4194304 (4 Millones)          -> ~??s (baseline para GPUGPU-Sim, no se ejecuta en tiempo razonable en Colab)
-    int width = 2048;
-    int height = 1024;
-    int N = width * height;
+    long N = 4194304;
     size_t size = N * sizeof(float);
 
     // Punteros para el Host(CPU) y el Device(GPU)
@@ -62,9 +53,6 @@ int main() {
     // Inicializar datos con valores aleatorios entre 0 y 1
     for (int i = 0; i < N; i++)
         h_in[i] = (float)rand() / (float)RAND_MAX;
-
-    // Optimizacion Cap 4: Ordenar datos para reducir divergencia en el Host
-    std::sort(h_in, h_in + N);
         
     // 2. Asignacion de memoria en el Device
     cudaMalloc((void**)&d_in, size);
@@ -73,12 +61,10 @@ int main() {
     // 3. Transferir datos: Host -> Device
     cudaMemcpy(d_in, h_in, size, cudaMemcpyHostToDevice);
 
-    // 4. Configurar la ejecucion en 2D (GRID y Bloques)
-    // Bloques de 32x16 = 512 hilos por bloques (Optimizacion para aumentar ocupacion)
-    dim3 hilosPorBloque(32, 16);
-
-    // Cuadricula (Grid) en 2D
-    dim3 bloquesPorGrid((width + hilosPorBloque.x - 1) / hilosPorBloque.x, (height + hilosPorBloque.y - 1) / hilosPorBloque.y);
+    // 4. Configurar la ejecucion (GRID y Bloques)
+    int hilosPorBloque = 256;
+    // Formula maestra para asegurar suficientes bloques: ceil(N / hilosPorBloque)
+    int bloquesPorGrid = (N + hilosPorBloque - 1) / hilosPorBloque;
 
     // 5. Configurar los eventos de CUDA para medir el tiempo
     cudaEvent_t start, stop;
@@ -88,11 +74,11 @@ int main() {
     // =====================================================================
     // 6. LANZAR KERNEL Y MEDIR (MODIFICADO PARA PROFILING PROFESIONAL)
     // =====================================================================
-    printf("Configuracion: Grid: %d%d bloques. Bloque: %d%d hilos. N = %ld\n\n", bloquesPorGrid.x, bloquesPorGrid.y, hilosPorBloque.x, hilosPorBloque.y, N);
+    printf("Configuracion: %d bloques de %d hilos. N = %ld\n\n", bloquesPorGrid, hilosPorBloque, N);
 
     // --- FASE A: WARM-UP (Calentamiento) ---
     printf("Realizando 'Warm-up' de la GPU...\n");
-    filtro_condicional<<<bloquesPorGrid, hilosPorBloque>>>(d_in, d_out, width, height);
+    filtro_condicional<<<bloquesPorGrid, hilosPorBloque>>>(d_in, d_out, N);
     cudaDeviceSynchronize(); // Esperamos a que termine para limpiar el contexto
     
     // --- FASE B: BUCLE DE MEDICIÓN ---
@@ -106,7 +92,7 @@ int main() {
     for (int i = 0; i < NUM_EJECUCIONES; i++) {
         cudaEventRecord(start);
         
-        filtro_condicional<<<bloquesPorGrid, hilosPorBloque>>>(d_in, d_out, width, height);
+        filtro_condicional<<<bloquesPorGrid, hilosPorBloque>>>(d_in, d_out, N);
         
         cudaEventRecord(stop);
         cudaEventSynchronize(stop); // Fundamental sincronizar en cada iteración
@@ -125,7 +111,7 @@ int main() {
     // --- FASE C: CÁLCULO DE ESTADÍSTICAS ---
     float media = suma_tiempos / NUM_EJECUCIONES;
 
-    printf("\n¡Ejecucion 2D completada!\n");
+    printf("\n¡Ejecucion completada!\n");
     printf("--------------------------------------------------\n");
     printf("T1: %.3f ms | T2: %.3f ms | T3: %.3f ms | T4: %.3f ms | T5: %.3f ms\n", 
            tiempos[0], tiempos[1], tiempos[2], tiempos[3], tiempos[4]);

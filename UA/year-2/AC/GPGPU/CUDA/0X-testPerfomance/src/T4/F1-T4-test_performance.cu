@@ -39,7 +39,7 @@ int main() {
     // Tamaño
     // N = 536870912 (512 Millones)      -> ~??s (Baseline para Colab T4, no se ejecuta en tiempo razonable en GPGPU-Sim)
     // N = 4194304 (4 Millones)          -> ~??s (baseline para GPUGPU-Sim, no se ejecuta en tiempo razonable en Colab)
-    int N = 536870912;
+    long N = 536870912;
     size_t size = N * sizeof(float);
 
     // Punteros para el Host(CPU) y el Device(GPU)
