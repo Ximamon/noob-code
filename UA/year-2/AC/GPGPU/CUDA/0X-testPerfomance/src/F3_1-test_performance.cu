@@ -10,10 +10,13 @@
  * Fase 1  | 367000.000 ms | 358000.000 ms | 354000.000 ms | 358000.000 ms | 362000.000 ms | 354000.000 ms |    31665    |   1.2344  | Implementación base (Naive)
  * Fase 2  | 411000.000 ms | 418000.000 ms | 423000.000 ms | 418000.000 ms | 424000.000 ms | 411000.000 ms |    33962    |   1.3439  | Version con mapeo 2D (Grid y Bloques en 2D)
  * Fase 3  | 366000.000 ms | 373000.000 ms | 386000.000 ms | 374000.000 ms | 369000.000 ms | 366000.000 ms |    30750    |   1.4842  | Ordenamiento de datos para reducir divergencia (sort en el Host)
+ * Fase 3.1| 366000.000 ms | 373000.000 ms | 386000.000 ms | 374000.000 ms | 369000.000 ms | 366000.000 ms |    30750    |   1.4842  | Optimización: Bloques de 32x16 hilos para aumentar ocupación (en lugar de 16x16)
  * ========================================================================================= */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <algorithm>
 
 // Kernel de la GPU (Cap 3: Mapeo 2D)
 __global__ void filtro_condicional(float *in, float *out, int width, int height) {
@@ -44,7 +47,7 @@ int main() {
     // N = 536870912 (512 Millones)      -> ~??s (Baseline para Colab T4, no se ejecuta en tiempo razonable en GPGPU-Sim)
     // N = 4194304 (4 Millones)          -> ~??s (baseline para GPUGPU-Sim, no se ejecuta en tiempo razonable en Colab)
     int width = 2048;
-    int height = 2048;
+    int height = 1024;
     int N = width * height;
     size_t size = N * sizeof(float);
 
@@ -59,6 +62,9 @@ int main() {
     // Inicializar datos con valores aleatorios entre 0 y 1
     for (int i = 0; i < N; i++)
         h_in[i] = (float)rand() / (float)RAND_MAX;
+
+    // Optimizacion Cap 4: Ordenar datos para reducir divergencia en el Host
+    std::sort(h_in, h_in + N);
         
     // 2. Asignacion de memoria en el Device
     cudaMalloc((void**)&d_in, size);
@@ -68,8 +74,8 @@ int main() {
     cudaMemcpy(d_in, h_in, size, cudaMemcpyHostToDevice);
 
     // 4. Configurar la ejecucion en 2D (GRID y Bloques)
-    // Bloques de 16x16 = 256 hilos por bloques
-    dim3 hilosPorBloque(16, 16);
+    // Bloques de 32x16 = 512 hilos por bloques (Optimizacion para aumentar ocupacion)
+    dim3 hilosPorBloque(32, 16);
 
     // Cuadricula (Grid) en 2D
     dim3 bloquesPorGrid((width + hilosPorBloque.x - 1) / hilosPorBloque.x, (height + hilosPorBloque.y - 1) / hilosPorBloque.y);

@@ -2,12 +2,15 @@
  * REGISTRO DE RENDIMIENTO (Tiempos en milisegundos)
  * Hardware: GPGPUSim SM7_QV100 | Tamaño del Grid/Bloque: 256 hilos por bloque, bloques calculados para cubrir N elementos
  * Descripción: Kernel que va aplicando cada concepto aprendido en los capitulos del libro Programming Massively Parallel Processors: A Hands-on Approach 4ed
+ * Nota: Para ejecuciones en GPGPU-Sim, se transforma el IPC Global a IPC por SM que es lo que da NCU
+ *       con la formula IPC_SM = (IPC_Global / 32) / 80 (32 Warps por SM y 80 SMs en V100)
  * =========================================================================================
- * Versión |      T1       |       T2      |       T3      |       T4      |       T5      |     T. Min    | Ciclos Sim. | IPC Sim.  | Descripción
- * --------|---------------|---------------|---------------|---------------|---------------|---------------|-------------|-----------|---------------------------------
- * Fase 1  | 367000.000 ms | 358000.000 ms | 354000.000 ms | 358000.000 ms | 362000.000 ms | 354000.000 ms |    31665    | 3160.0098 | Implementación base (Naive)
- * Fase 2  | 411000.000 ms | 418000.000 ms | 423000.000 ms | 418000.000 ms | 424000.000 ms | 411000.000 ms |    33962    | 3440.2842 | Version con mapeo 2D (Grid y Bloques en 2D)
- * Fase 3  | 366000.000 ms | 373000.000 ms | 386000.000 ms | 374000.000 ms | 369000.000 ms | 366000.000 ms |    30750    | 3799.6399 | Ordenamiento de datos para reducir divergencia (sort en el Host)
+ * Versión  |      T1       |       T2      |       T3      |       T4      |       T5      |     T. Min    | Ciclos Sim. |    IPC    | Descripción
+ * ---------|---------------|---------------|---------------|---------------|---------------|---------------|-------------|-----------|---------------------------------
+ * Fase 1   | 367000.000 ms | 358000.000 ms | 354000.000 ms | 358000.000 ms | 362000.000 ms | 354000.000 ms |    31665    |   1.2344  | Implementación base (Naive)
+ * Fase 2   | 411000.000 ms | 418000.000 ms | 423000.000 ms | 418000.000 ms | 424000.000 ms | 411000.000 ms |    33962    |   1.3439  | Version con mapeo 2D (Grid y Bloques en 2D)
+ * Fase 3   | 366000.000 ms | 373000.000 ms | 386000.000 ms | 374000.000 ms | 369000.000 ms | 366000.000 ms |    30750    |   1.4842  | Ordenamiento de datos para reducir divergencia (sort en el Host)
+ * *Fase 3.1| 366000.000 ms | 373000.000 ms | 386000.000 ms | 374000.000 ms | 369000.000 ms | 366000.000 ms |    30750    |   1.4842  | Optimización: Bloques de 32x16 hilos para aumentar ocupación (en lugar de 16x16)
  * ========================================================================================= */
 
 #include <stdio.h>
@@ -71,8 +74,8 @@ int main() {
     cudaMemcpy(d_in, h_in, size, cudaMemcpyHostToDevice);
 
     // 4. Configurar la ejecucion en 2D (GRID y Bloques)
-    // Bloques de 16x16 = 256 hilos por bloques
-    dim3 hilosPorBloque(16, 16);
+    // Bloques de 32x16 = 512 hilos por bloques (Optimizacion para aumentar ocupacion)
+    dim3 hilosPorBloque(32, 16);
 
     // Cuadricula (Grid) en 2D
     dim3 bloquesPorGrid((width + hilosPorBloque.x - 1) / hilosPorBloque.x, (height + hilosPorBloque.y - 1) / hilosPorBloque.y);

@@ -1,19 +1,21 @@
 /* =========================================================================================
  * REGISTRO DE RENDIMIENTO (Tiempos en milisegundos)
- * Hardware: GPGPUSim SM7_QV100 | Tamaño del Grid/Bloque: 256 hilos por bloque, bloques calculados para cubrir N elementos
+ * Hardware: Google Colab T4 | Tamaño del Grid/Bloque: 256 hilos por bloque, bloques calculados para cubrir N elementos
  * Descripción: Kernel que va aplicando cada concepto aprendido en los capitulos del libro Programming Massively Parallel Processors: A Hands-on Approach 4ed
  * Nota: Para ejecuciones en GPGPU-Sim, se transforma el IPC Global a IPC por SM que es lo que da NCU
  *       con la formula IPC_SM = (IPC_Global / 32) / 80 (32 Warps por SM y 80 SMs en V100)
  * =========================================================================================
- * Versión |      T1       |       T2      |       T3      |       T4      |       T5      |     T. Min    | Ciclos Sim. |    IPC    | Descripción
- * --------|---------------|---------------|---------------|---------------|---------------|---------------|-------------|-----------|---------------------------------
- * Fase 1  | 367000.000 ms | 358000.000 ms | 354000.000 ms | 358000.000 ms | 362000.000 ms | 354000.000 ms |    31665    |   1.2344  | Implementación base (Naive)
- * Fase 2  | 411000.000 ms | 418000.000 ms | 423000.000 ms | 418000.000 ms | 424000.000 ms | 411000.000 ms |    33962    |   1.3439  | Version con mapeo 2D (Grid y Bloques en 2D)
- * Fase 3  | 366000.000 ms | 373000.000 ms | 386000.000 ms | 374000.000 ms | 369000.000 ms | 366000.000 ms |    30750    |   1.4842  | Ordenamiento de datos para reducir divergencia (sort en el Host)
+ * Versión  |    T1     |     T2    |     T3    |     T4    |     T5    |   T. Min  |   Ciclos    |  IPC   | Descripción
+ * ---------|-----------|-----------|-----------|-----------|-----------|-----------|-------------|--------|---------------------------------
+ * Fase 1   | 24.527 ms | 24.497 ms | 24.503 ms | 24.528 ms | 24.577 ms | 24.497 ms |  623681610  | 2.0713 | Implementación base (Naive)
+ * Fase 2   | 26.220 ms | 26.208 ms | 26.229 ms | 26.173 ms | 26.169 ms | 26.169 ms |  694286228  | 1.9815 | Version con mapeo 2D (Grid y Bloques en 2D)
+ * Fase 3   | 20.429 ms | 20.371 ms | 20.355 ms | 20.362 ms | 20.368 ms | 20.355 ms |  564083103  | 1.5169 | Ordenamiento de datos para reducir divergencia (sort en el Host)
+ * *Fase 3.1| 20.429 ms | 20.371 ms | 20.355 ms | 20.362 ms | 20.368 ms | 20.355 ms |  564083103  | 1.5169 | Optimización: Bloques de 32x16 hilos para aumentar ocupación (en lugar de 16x16)
  * ========================================================================================= */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <algorithm>
 
 // Kernel de la GPU (Cap 3: Mapeo 2D)
 __global__ void filtro_condicional(float *in, float *out, int width, int height) {
@@ -43,9 +45,9 @@ int main() {
     // Tamaño
     // N = 536870912 (512 Millones)      -> ~??s (Baseline para Colab T4, no se ejecuta en tiempo razonable en GPGPU-Sim)
     // N = 4194304 (4 Millones)          -> ~??s (baseline para GPUGPU-Sim, no se ejecuta en tiempo razonable en Colab)
-    int width = 2048;
-    int height = 2048;
-    int N = width * height;
+    int width = 32768;
+    int height = 16384;
+    long N = width * height;
     size_t size = N * sizeof(float);
 
     // Punteros para el Host(CPU) y el Device(GPU)
@@ -59,6 +61,9 @@ int main() {
     // Inicializar datos con valores aleatorios entre 0 y 1
     for (int i = 0; i < N; i++)
         h_in[i] = (float)rand() / (float)RAND_MAX;
+
+    // Optimizacion Cap 4: Ordenar datos para reducir divergencia en el Host
+    std::sort(h_in, h_in + N);
         
     // 2. Asignacion de memoria en el Device
     cudaMalloc((void**)&d_in, size);
@@ -68,8 +73,8 @@ int main() {
     cudaMemcpy(d_in, h_in, size, cudaMemcpyHostToDevice);
 
     // 4. Configurar la ejecucion en 2D (GRID y Bloques)
-    // Bloques de 16x16 = 256 hilos por bloques
-    dim3 hilosPorBloque(16, 16);
+    // Bloques de 32x16 = 512 hilos por bloques
+    dim3 hilosPorBloque(32, 16);
 
     // Cuadricula (Grid) en 2D
     dim3 bloquesPorGrid((width + hilosPorBloque.x - 1) / hilosPorBloque.x, (height + hilosPorBloque.y - 1) / hilosPorBloque.y);
