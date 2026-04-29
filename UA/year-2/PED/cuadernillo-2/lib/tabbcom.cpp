@@ -6,6 +6,9 @@
 #include <queue>
 #include <cmath>
 
+// ------------------- Forma canonica -------------------
+// ---------------------  TNodoABB  ---------------------
+
 TNodoABB::TNodoABB() {
     this->item = TComplejo();
     this->iz = TABBCom();
@@ -31,6 +34,10 @@ TNodoABB &TNodoABB::operator=(const TNodoABB &other) {
     return *this;
 }
 
+// ------------------------------------------------------
+
+// ------------------- Forma canonica -------------------
+// ---------------------  TABBCom  ----------------------
 TABBCom::TABBCom() {
     this->nodo = nullptr;
 }
@@ -62,6 +69,9 @@ TABBCom &TABBCom::operator=(const TABBCom &other) {
     return *this;
 }
 
+// ------------------------------------------------------
+
+// ----------------- Metodos operadores -----------------
 bool TABBCom::EsVacio() const {
     return this->nodo == nullptr;
 }
@@ -172,6 +182,9 @@ bool TABBCom::operator==(const TABBCom &otro) {
     return this->Inorden() == otro.Inorden();
 }
 
+// ------------------------------------------------------
+
+// ----------------- Metodos de consulta ----------------
 TComplejo TABBCom::Raiz() const {
     if (EsVacio()) return TComplejo();
 
@@ -204,6 +217,9 @@ int TABBCom::NodosHoja() const {
     return this->nodo->iz.NodosHoja() + this->nodo->de.NodosHoja();
 }
 
+// ------------------------------------------------------
+
+// --------------------- Recorridos ---------------------
 void TABBCom::InordenAux(TVectorCom &v, int &pos) const {
     if (!EsVacio()) {
         this->nodo->iz.InordenAux(v, pos);
@@ -282,6 +298,8 @@ TVectorCom TABBCom::Niveles() const {
 
     return v;
 }
+
+// ------------------------------------------------------
 
 std::ostream &operator<<(std::ostream &os, const TABBCom &arbol) {
     os << arbol.Niveles();

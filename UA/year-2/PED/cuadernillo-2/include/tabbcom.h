@@ -27,17 +27,21 @@ public:
     ~TABBCom();
     TABBCom &operator=(const TABBCom &);
 
+    // Metodos operadores
     bool operator==(const TABBCom &);
     bool EsVacio() const;
     bool Insertar(const TComplejo &);
     bool Borrar(const TComplejo &);
     bool Buscar(const TComplejo &) const;
 
+    // Metodos de consulta
     TComplejo Raiz() const;
     int Altura() const;
     int Nodos() const;
     int NodosHoja() const;
 
+
+    // Recorridos
     TVectorCom Inorden() const;
     TVectorCom Preorden() const;
     TVectorCom Postorden() const;
