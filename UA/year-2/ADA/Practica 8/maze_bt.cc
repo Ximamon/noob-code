@@ -20,15 +20,15 @@ struct args {
 const std::vector<unsigned> ve = {4, 5, 3, 6, 2, 7, 1, 8}; // Orden de las direcciones: derecha, abajo, izquierda, arriba
 
 const int vinc[9][2] = {
-    {0, 0},     // 0: No se mueve
-    {0, -1},    // 1: izquierda
-    {1, 0},     // 2: abajo
-    {0, 1},     // 3: derecha
-    {-1, 0},    // 4: arriba
-    {1, -1},    // 5: abajo-izquierda
-    {1, 1},     // 6: abajo-derecha
-    {-1, -1},   // 7: arriba-izquierda
-    {-1, 1}     // 8: arriba-derecha
+    {0, 0},
+    {-1, 0}, // 1: N
+    {-1, 1}, // 2: NE
+    {0, 1},  // 3: E
+    {1, 1},  // 4: SE
+    {1, 0},  // 5: S
+    {1, -1}, // 6: SW
+    {0, -1}, // 7: W
+    {-1, -1} // 8: NW
 };
 
 struct Stats {
@@ -94,27 +94,26 @@ void leer_laberinto(const std::string& filename, int& n, int& m, std::vector<std
 
 void maze_bt(const std::vector<std::vector<int>>& maze, int i, int j, int k, 
              std::vector<std::vector<long>>& costs, 
-             std::vector<std::vector<unsigned>>& from, 
+             std::vector<unsigned>& current_path, // Llevamos la ruta en la mano
              long& bestSol, 
-             std::vector<std::vector<unsigned>>& best_from,
+             std::vector<unsigned>& best_path,    // Aquí guardaremos la ruta ganadora
              Stats& st) {
     
-    st.visitados++; // (1) Entramos a un nodo
+    st.visitados++;
 
     int n = maze.size();
     int m = maze[0].size();
 
     // ¿Hemos llegado a la meta?
     if (i == n - 1 && j == m - 1) {
-        st.hojas++; // (3) Es un nodo hoja
+        st.hojas++;
         if (k < bestSol) {
             bestSol = k;
-            best_from = from; // CONGELAMOS la ruta ganadora
+            best_path = current_path; // ¡Copiamos la ruta ganadora exacta!
         }
     } 
     else {
-        // Expandimos en las 8 direcciones posibles
-        st.explorados++; // (2) Vamos a generar sus hijos
+        st.explorados++;
         for (int p = 0; p < 8; p++) {
             unsigned direccion = ve[p];
             int inc_i = vinc[direccion][0];
@@ -122,65 +121,36 @@ void maze_bt(const std::vector<std::vector<int>>& maze, int i, int j, int k,
             int isig = i + inc_i;
             int jsig = j + inc_j;
 
-            // 1. ¿Es FACTIBLE? (No se sale del mapa y es un camino '1')
+            // 1. Factible
             if (isig >= 0 && isig < n && jsig >= 0 && jsig < m && maze[isig][jsig] == 1) {
-                
-                // 2. ¿Es PROMETEDOR por coste histórico? (No hemos pasado por aquí más rápido)
+                // 2. Prometedor por coste
                 if (k + 1 < costs[isig][jsig]) {
-                    
-                    // 3. ¿Es PROMETEDOR hacia el futuro? (Cota optimista < mejor solución)
+                    // 3. Prometedor por heurística
                     if (k + 1 + estimacion(n, m, isig, jsig) < bestSol) {
                         
-                        // Si pasa todos los filtros, actualizamos registros y llamamos a la recursión
-                        long coste_anterior = costs[isig][jsig]; // Guardamos por si hay que deshacer
+                        long coste_anterior = costs[isig][jsig];
                         costs[isig][jsig] = k + 1;
-                        from[isig][jsig] = direccion;
                         
-                        maze_bt(maze, isig, jsig, k + 1, costs, from, bestSol, best_from, st);
+                        // Añadimos el paso a nuestra ruta actual
+                        current_path.push_back(direccion); 
                         
-                        // Backtracking: Restauramos el coste al volver para no fastidiar otras ramas
+                        maze_bt(maze, isig, jsig, k + 1, costs, current_path, bestSol, best_path, st);
+                        
+                        // Backtracking: Deshacemos el paso y el coste al volver
+                        current_path.pop_back(); 
                         costs[isig][jsig] = coste_anterior; 
 
                     } else {
-                        st.descartados_no_prometedores++; // (5) Cortado por heurística
+                        st.descartados_no_prometedores++;
                     }
                 } else {
-                    st.descartados_no_prometedores++; // (5) Cortado por ya visitado mejor
+                    st.descartados_no_prometedores++;
                 }
             } else {
-                st.descartados_no_factibles++; // (4) Es un muro o fuera del mapa
+                st.descartados_no_factibles++;
             }
         }
     }
-}
-
-void reconstruir_camino(std::vector<std::vector<int>>& maze, 
-                        const std::vector<std::vector<unsigned>>& best_from, 
-                        std::string& camino_str) {
-    int i = maze.size() - 1;
-    int j = maze[0].size() - 1;
-    
-    // Si no se tocó la meta, devolvemos <0>
-    if (best_from[i][j] == 0) {
-        camino_str = "<0>";
-        return;
-    }
-
-    camino_str = ">"; // Empezamos a construir el string desde el final
-    maze[i][j] = 2;   // Marcamos la meta con asterisco
-    
-    while (i != 0 || j != 0) {
-        unsigned dir = best_from[i][j];
-        camino_str = std::to_string(dir) + camino_str;
-        
-        // Vamos marcha atrás: restamos el incremento que usamos para llegar
-        i -= vinc[dir][0];
-        j -= vinc[dir][1];
-        
-        maze[i][j] = 2; // Marcamos el camino con asterisco
-    }
-    
-    camino_str = "<" + camino_str;
 }
 
 int main(int argc, char* argv[]) {
@@ -191,7 +161,6 @@ int main(int argc, char* argv[]) {
     std::vector<std::vector<int>> maze;
     leer_laberinto(arguments.filename, n, m, maze);
 
-    // Si el laberinto de entrada está bloqueado en el origen, no hacemos nada
     if (maze[0][0] == 0) {
         std::cout << "0\n0 0 0 0 0\n0.0\n";
         if (arguments.p2D) std::cout << "0\n";
@@ -199,74 +168,62 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    // Inicializamos las estructuras de datos para Backtracking
     std::vector<std::vector<long>> costs(n, std::vector<long>(m, INFINITO));
-    std::vector<std::vector<unsigned>> from(n, std::vector<unsigned>(m, 0));
-    std::vector<std::vector<unsigned>> best_from(n, std::vector<unsigned>(m, 0));
+    std::vector<unsigned> current_path; // Vector para la ruta activa
+    std::vector<unsigned> best_path;    // Vector para la ruta ganadora
     Stats st;
     long bestSol = INFINITO;
     
-    // El punto de partida ya cuesta 1 paso
     costs[0][0] = 1;
 
-    // --- CRONÓMETRO: INICIO ---
+    // Cronómetro
     auto start = std::chrono::high_resolution_clock::now();
 
-    // Llamamos a la función de Vuelta Atrás
-    maze_bt(maze, 0, 0, 1, costs, from, bestSol, best_from, st);
+    maze_bt(maze, 0, 0, 1, costs, current_path, bestSol, best_path, st);
 
-    // --- CRONÓMETRO: FIN ---
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> duration = end - start;
 
-    // Reconstruimos el camino (esto preparará el string y los asteriscos en la matriz)
-    std::string camino_str;
+    // --- Construcción del string y dibujo sobre el mapa (Hacia adelante) ---
+    std::string camino_str = "<";
     if (bestSol != INFINITO) {
-        reconstruir_camino(maze, best_from, camino_str);
+        int curr_i = 0, curr_j = 0;
+        maze[curr_i][curr_j] = 2; // Marcamos el origen
+        
+        // Recorremos los pasos exactos que guardó la ruta ganadora
+        for (unsigned dir : best_path) {
+            camino_str += std::to_string(dir);
+            curr_i += vinc[dir][0];
+            curr_j += vinc[dir][1];
+            maze[curr_i][curr_j] = 2; // Marcamos el mapa
+        }
     } else {
-        camino_str = "<0>";
+        camino_str += "0";
     }
+    camino_str += ">";
 
-    // ==========================================
-    // IMPRESIÓN ESTRICTA SEGÚN EL PDF
-    // ==========================================
-
-    // Línea 1: Longitud del camino o 0
+    // --- Impresión ---
     std::cout << (bestSol == INFINITO ? 0 : bestSol) << std::endl;
-
-    // Línea 2: Estadísticas (visitados explorados hojas no_factibles no_prometedores)
-    std::cout << st.visitados << " " 
-              << st.explorados << " " 
-              << st.hojas << " " 
-              << st.descartados_no_factibles << " " 
-              << st.descartados_no_prometedores << std::endl;
-
-    // Línea 3: Tiempo en milisegundos
+    std::cout << st.visitados << " " << st.explorados << " " << st.hojas << " " 
+              << st.descartados_no_factibles << " " << st.descartados_no_prometedores << std::endl;
     std::cout << duration.count() << std::endl;
 
-    // Línea 4+: Imprimir mapa si se pide --p2D
     if (arguments.p2D) {
         if (bestSol == INFINITO) {
             std::cout << "0" << std::endl;
         } else {
             for (int i = 0; i < n; i++) {
                 for (int j = 0; j < m; j++) {
-                    if (maze[i][j] == 2) {
-                        std::cout << "*";
-                    } else {
-                        std::cout << maze[i][j];
-                    }
+                    std::cout << (maze[i][j] == 2 ? '*' : (maze[i][j] ? '1' : '0'));
                 }
                 std::cout << std::endl;
             }
         }
     }
 
-    // Línea 5+: Imprimir secuencia numérica si se pide -p
     if (arguments.p) {
         std::cout << camino_str << std::endl;
     }
 
     return 0;
 }
-
