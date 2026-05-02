@@ -92,6 +92,27 @@ void leer_laberinto(const std::string& filename, int& n, int& m, std::vector<std
     }
 }
 
+long maze_greedy(const std::vector<std::vector<int>>& maze) {
+    int n = maze.size();
+    int m = maze[0].size();
+    int i = 0, j = 0;
+    long pasos = 1;
+
+    while (i != n - 1 || j != m - 1) {
+        if (i + 1 < n && j + 1 < m && maze[i + 1][j + 1] == 1) {
+            i++; j++;
+        } else if (i + 1 < n && maze[i + 1][j] == 1) {
+            i++;
+        } else if (j + 1 < m && maze[i][j + 1] == 1) {
+            j++;
+        } else {
+            return INFINITO; // Si se atasca, devolvemos infinito
+        }
+        pasos++;
+    }
+    return pasos;
+}
+
 void maze_bt(const std::vector<std::vector<int>>& maze, int i, int j, int k, 
              std::vector<std::vector<long>>& costs, 
              std::vector<unsigned>& current_path, // Llevamos la ruta en la mano
@@ -172,15 +193,22 @@ int main(int argc, char* argv[]) {
     std::vector<unsigned> current_path; // Vector para la ruta activa
     std::vector<unsigned> best_path;    // Vector para la ruta ganadora
     Stats st;
-    long bestSol = INFINITO;
     
     costs[0][0] = 1;
 
-    // Cronómetro
+    // Cronómetro en marcha
     auto start = std::chrono::high_resolution_clock::now();
 
+    // Sacamos una cota pesimista inicial con el método voraz
+    long bestSol = maze_greedy(maze); 
+    
+    // Si el voraz no encontró salida, lo devolvemos a INFINITO por si el BT sí la encuentra
+    if (bestSol == 0) bestSol = INFINITO; 
+
+    // Ahora lanzamos el Backtracking, ¡pero ya va dopado con el récord del voraz!
     maze_bt(maze, 0, 0, 1, costs, current_path, bestSol, best_path, st);
 
+    // Cronómetro parado
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> duration = end - start;
 
