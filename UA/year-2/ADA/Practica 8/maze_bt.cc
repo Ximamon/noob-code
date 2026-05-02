@@ -201,9 +201,6 @@ int main(int argc, char* argv[]) {
 
     // Sacamos una cota pesimista inicial con el método voraz
     long bestSol = maze_greedy(maze); 
-    
-    // Si el voraz no encontró salida, lo devolvemos a INFINITO por si el BT sí la encuentra
-    if (bestSol == 0) bestSol = INFINITO; 
 
     // Ahora lanzamos el Backtracking, ¡pero ya va dopado con el récord del voraz!
     maze_bt(maze, 0, 0, 1, costs, current_path, bestSol, best_path, st);
