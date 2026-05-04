@@ -9,8 +9,8 @@
  * ---------|---------------|---------------|---------------|---------------|---------------|---------------|-------------|-----------|---------------------------------
  * Fase 1   | 367000.000 ms | 358000.000 ms | 354000.000 ms | 358000.000 ms | 362000.000 ms | 354000.000 ms |    31665    |   1.2344  | Implementación base (Naive)
  * Fase 2   | 411000.000 ms | 418000.000 ms | 423000.000 ms | 418000.000 ms | 424000.000 ms | 411000.000 ms |    33962    |   1.3439  | Version con mapeo 2D (Grid y Bloques en 2D)
- * Fase 3   | 366000.000 ms | 373000.000 ms | 386000.000 ms | 374000.000 ms | 369000.000 ms | 366000.000 ms |    30750    |   1.4842  | Ordenamiento de datos para reducir divergencia (sort en el Host)
- * *Fase 3.1| 366000.000 ms | 373000.000 ms | 386000.000 ms | 374000.000 ms | 369000.000 ms | 366000.000 ms |    30750    |   1.4842  | Optimización: Bloques de 32x16 hilos para aumentar ocupación (en lugar de 16x16)
+ * *Fase 3  | 366000.000 ms | 373000.000 ms | 386000.000 ms | 374000.000 ms | 369000.000 ms | 366000.000 ms |    30750    |   1.4842  | Ordenamiento de datos para reducir divergencia (sort en el Host)
+ * Fase 3.1 | 366000.000 ms | 373000.000 ms | 386000.000 ms | 374000.000 ms | 369000.000 ms | 366000.000 ms |    30750    |   1.4842  | Optimización: Bloques de 32x16 hilos para aumentar ocupación (en lugar de 16x16)
  * ========================================================================================= */
 #include <stdio.h>
 #include <stdlib.h>

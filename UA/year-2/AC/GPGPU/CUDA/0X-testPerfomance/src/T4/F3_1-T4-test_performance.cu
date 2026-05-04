@@ -7,10 +7,10 @@
  * =========================================================================================
  * Versión  |    T1     |     T2    |     T3    |     T4    |     T5    |   T. Min  |   Ciclos    |  IPC   | Descripción
  * ---------|-----------|-----------|-----------|-----------|-----------|-----------|-------------|--------|---------------------------------
- * Fase 1   | 24.527 ms | 24.497 ms | 24.503 ms | 24.528 ms | 24.577 ms | 24.497 ms |  623681610  | 2.0713 | Implementación base (Naive)
- * Fase 2   | 26.220 ms | 26.208 ms | 26.229 ms | 26.173 ms | 26.169 ms | 26.169 ms |  694286228  | 1.9815 | Version con mapeo 2D (Grid y Bloques en 2D)
- * Fase 3   | 20.429 ms | 20.371 ms | 20.355 ms | 20.362 ms | 20.368 ms | 20.355 ms |  564083103  | 1.5169 | Ordenamiento de datos para reducir divergencia (sort en el Host)
- * *Fase 3.1| 20.429 ms | 20.371 ms | 20.355 ms | 20.362 ms | 20.368 ms | 20.355 ms |  564083103  | 1.5169 | Optimización: Bloques de 32x16 hilos para aumentar ocupación (en lugar de 16x16)
+ * Fase 1   | 24.608 ms | 24.616 ms | 24.607 ms | 24.609 ms | 24.601 ms | 24.601 ms |  623557024  | 2.0717 | Implementación base (Naive)
+ * Fase 2   | 29.093 ms | 29.084 ms | 29.090 ms | 29.080 ms | 27.069 ms | 27.069 ms |  694767806  | 1.9801 | Version con mapeo 2D (Grid y Bloques en 2D)
+ * Fase 3   | 19.427 ms | 19.423 ms | 19.098 ms | 18.698 ms | 18.656 ms | 18.656 ms |  563654196  | 1.5181 | Ordenamiento de datos para reducir divergencia (sort en el Host)
+ * *Fase 3.1| 20.167 ms | 20.154 ms | 20.160 ms | 20.163 ms | 20.157 ms | 20.154 ms |  571745891  | 1.4966 | Optimización: Bloques de 32x16 hilos para aumentar ocupación (en lugar de 16x16)
  * ========================================================================================= */
 #include <stdio.h>
 #include <stdlib.h>
