@@ -38,11 +38,11 @@ test:
 	./evalua.sh
 
 tar:
-	tar -czvf cuad1.tgz $(SRC_DIR) $(LIB_DIR) $(INCLUDE_DIR) Makefile nombres.txt
+	tar -czvf cuad2.tgz $(SRC_DIR) $(LIB_DIR) $(INCLUDE_DIR) Makefile nombres.txt
 
 # Limpieza
 clean:
-	rm -rf $(BUILD_DIR) $(EXEC) ComplejoPRUEBA/*.out TVectorCom_PRUEBA/*.out TListaCom_PRUEBA/*.out tad.dSYM
+	rm -rf $(BUILD_DIR) $(EXEC) TABBCom_PRUEBA/*.out cuad2.tgz tad.dSYM
 
 # -----------------------------------------------------------------------------
 # Reglas de Compilación
