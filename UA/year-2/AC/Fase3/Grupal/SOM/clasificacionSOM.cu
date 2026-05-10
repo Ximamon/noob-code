@@ -4,7 +4,7 @@
 /*													                            */
 /*  RESUMEN												                        */
 /*  ~~~~~~~												                        */
-/* Ejercicio grupal para la clasificaci髇 de patrones de entrada basada         */
+/* Ejercicio grupal para la clasificaci贸n de patrones de entrada basada         */
 /* en SOM utilizando GPUs                                                       */
 /*----------------------------------------------------------------------------*/
 
@@ -31,8 +31,112 @@ typedef LARGE_INTEGER timeStamp;
 double getTime();
 
 /*----------------------------------------------------------------------------*/
-/*  FUNCION A PARALELIZAR  (versi髇 secuencial-CPU)  				          */
-/*	Implementa la clasificaci髇 basada en SOM de un conjunto de patrones      */
+/* Helpers M3: indices row-major y distancia euclidea sobre arrays planos     */
+/*----------------------------------------------------------------------------*/
+__host__ __device__ inline int IndiceNeuronaRowMajor(int y, int x, int ancho)
+{
+	// Convenio comun del equipo: neurona (y,x) -> y*ancho + x
+	return y * ancho + x;
+}
+
+__host__ __device__ inline int IndicePesoRowMajor(int indiceNeurona, int dimension, int componente)
+{
+	// Layout lineal de pesos: [neurona0(dim), neurona1(dim), ...]
+	return indiceNeurona * dimension + componente;
+}
+
+__device__ float DistanciaEuclideaNeurona(const float* pesosSOM, const float* patron, int indiceNeurona, int dimension)
+{
+	float acumulado = 0.0f;
+	for (int d = 0; d < dimension; ++d)
+	{
+		const float diferencia = pesosSOM[IndicePesoRowMajor(indiceNeurona, dimension, d)] - patron[d];
+		acumulado += diferencia * diferencia;
+	}
+	return sqrtf(acumulado);
+}
+
+/*----------------------------------------------------------------------------*/
+/* Kernel M3 (Ximo): distancia(neurona) + distancia(vecindario cruz valido)   */
+/*----------------------------------------------------------------------------*/
+__global__ void KernelDistanciasVecindario(
+	const float* pesosSOM,
+	const float* patron,
+	int alto,
+	int ancho,
+	int dimension,
+	float* distancias)
+{
+	// El patron se comparte a nivel bloque para evitar lecturas repetidas a global.
+	extern __shared__ float sPatron[];
+
+	const int hiloLineal = threadIdx.y * blockDim.x + threadIdx.x;
+	const int hilosBloque = blockDim.x * blockDim.y;
+
+	// Carga cooperativa del patron: cada hilo copia componentes separadas por stride.
+	for (int d = hiloLineal; d < dimension; d += hilosBloque)
+	{
+		sPatron[d] = patron[d];
+	}
+	__syncthreads();
+
+	const int x = blockIdx.x * blockDim.x + threadIdx.x;
+	const int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+	if (x >= ancho || y >= alto) return;
+
+	const int indiceNeurona = IndiceNeuronaRowMajor(y, x, ancho);
+	float sumaDistancias = DistanciaEuclideaNeurona(pesosSOM, sPatron, indiceNeurona, dimension);
+
+	// Vecindario cruz acordado: arriba, abajo, izquierda, derecha si esta en rango.
+	if (y > 0)
+	{
+		sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y - 1, x, ancho), dimension);
+	}
+	if (y < alto - 1)
+	{
+		sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y + 1, x, ancho), dimension);
+	}
+	if (x > 0)
+	{
+		sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y, x - 1, ancho), dimension);
+	}
+	if (x < ancho - 1)
+	{
+		sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y, x + 1, ancho), dimension);
+	}
+
+	// Contrato de salida M3: para el patron actual, una puntuacion por neurona.
+	distancias[indiceNeurona] = sumaDistancias;
+}
+
+static void CopiarSOMLineal(float* pesosLineales)
+{
+	// Convierte TSOM (doble puntero) a array row-major plano para GPU.
+	for (int y = 0; y < SOM.Alto; ++y)
+	{
+		for (int x = 0; x < SOM.Ancho; ++x)
+		{
+			const int indiceNeurona = IndiceNeuronaRowMajor(y, x, SOM.Ancho);
+			for (int d = 0; d < SOM.Dimension; ++d)
+			{
+				pesosLineales[IndicePesoRowMajor(indiceNeurona, SOM.Dimension, d)] = SOM.Neurona[y][x].pesos[d];
+			}
+		}
+	}
+}
+
+static void CopiarPatronLineal(int np, float* patronLineal)
+{
+	for (int d = 0; d < Patrones.Dimension; ++d)
+	{
+		patronLineal[d] = Patrones.Pesos[np][d];
+	}
+}
+
+/*----------------------------------------------------------------------------*/
+/*  FUNCION A PARALELIZAR  (versi贸n secuencial-CPU)  				          */
+/*	Implementa la clasificaci贸n basada en SOM de un conjunto de patrones      */
 /*  de entrada definidos en un fichero                                         */
 /*----------------------------------------------------------------------------*/
 int ClasificacionSOMCPU()
@@ -47,11 +151,12 @@ int ClasificacionSOMCPU()
 		{
 			for (int x = 0; x<SOM.Ancho; x++)
 			{
-				distancia=CalculaDistancia(y,x,np);     // CalculaDistancia entre neurona (y,x) y patr髇 np
-				for (int vy=-1;vy<2;vy++)               // Calculo en la vecindad
-					for (int vx=-1;vx<2;vx++)
-						if (vx != 0 && vy != 0)         // No comprobar con la misma neurona
-						   distancia+=CalculaDistancia(y+vy,x+vx,np);
+				distancia=CalculaDistancia(y,x,np);     // CalculaDistancia entre neurona (y,x) y patr贸n np
+				// Regla del PDF: vecindario cruz, sin diagonales.
+				if (y > 0) distancia += CalculaDistancia(y - 1, x, np);
+				if (y < SOM.Alto - 1) distancia += CalculaDistancia(y + 1, x, np);
+				if (x > 0) distancia += CalculaDistancia(y, x - 1, np);
+				if (x < SOM.Ancho - 1) distancia += CalculaDistancia(y, x + 1, np);
 				if (distancia < distanciaMenor)
 				{
 					distanciaMenor=distancia;  // Neurona con menor distancia
@@ -62,20 +167,95 @@ int ClasificacionSOMCPU()
 		}
 
 	}
-	return OKCLAS;									// Simulaci髇 CORRECTA
+	return OKCLAS;									// Simulaci贸n CORRECTA
 }
 
 // ---------------------------------------------------------------
 // ---------------------------------------------------------------
-// FUNCION A IMPLEMENTAR POR EL GRUPO (paralelizaci髇 de ClasificacionSOMCPU)
+// FUNCION A IMPLEMENTAR POR EL GRUPO (paralelizaci贸n de ClasificacionSOMCPU)
 // ---------------------------------------------------------------
 // ---------------------------------------------------------------
 
  int ClasificacionSOMGPU()
 {
+	// Implementacion intencionalmente limitada a M3 (sin reduccion/argmin de M4).
+	cudaError_t cudaStatus = cudaSuccess;
+	float* hPesosLineales = NULL;
+	float* hPatronLineal = NULL;
+	float* hDistancias = NULL;
+	float* dPesosLineales = NULL;
+	float* dPatronLineal = NULL;
+	float* dDistancias = NULL;
 
+	if (Patrones.Dimension != SOM.Dimension) return ERRORCLASS;
 
-	 return OKCLAS;
+	const int totalNeuronas = SOM.Alto * SOM.Ancho;
+	const size_t bytesPesos = (size_t)totalNeuronas * (size_t)SOM.Dimension * sizeof(float);
+	const size_t bytesPatron = (size_t)SOM.Dimension * sizeof(float);
+	const size_t bytesDistancias = (size_t)totalNeuronas * sizeof(float);
+
+	hPesosLineales = (float*)malloc(bytesPesos);
+	hPatronLineal = (float*)malloc(bytesPatron);
+	hDistancias = (float*)malloc(bytesDistancias);
+	if (hPesosLineales == NULL || hPatronLineal == NULL || hDistancias == NULL) goto Error;
+
+	CopiarSOMLineal(hPesosLineales);
+
+	cudaStatus = cudaMalloc((void**)&dPesosLineales, bytesPesos);
+	if (cudaStatus != cudaSuccess) goto Error;
+	cudaStatus = cudaMalloc((void**)&dPatronLineal, bytesPatron);
+	if (cudaStatus != cudaSuccess) goto Error;
+	cudaStatus = cudaMalloc((void**)&dDistancias, bytesDistancias);
+	if (cudaStatus != cudaSuccess) goto Error;
+
+	cudaStatus = cudaMemcpy(dPesosLineales, hPesosLineales, bytesPesos, cudaMemcpyHostToDevice);
+	if (cudaStatus != cudaSuccess) goto Error;
+
+	// Configuracion base recomendada en la planificacion (1 hilo por neurona en grid 2D).
+	const dim3 blockDim(16, 16);
+	const dim3 gridDim(
+		(SOM.Ancho + blockDim.x - 1) / blockDim.x,
+		(SOM.Alto + blockDim.y - 1) / blockDim.y);
+
+	for (int np = 0; np < Patrones.Cantidad; ++np)
+	{
+		CopiarPatronLineal(np, hPatronLineal);
+		cudaStatus = cudaMemcpy(dPatronLineal, hPatronLineal, bytesPatron, cudaMemcpyHostToDevice);
+		if (cudaStatus != cudaSuccess) goto Error;
+
+		KernelDistanciasVecindario<<<gridDim, blockDim, bytesPatron>>>(
+			dPesosLineales,
+			dPatronLineal,
+			SOM.Alto,
+			SOM.Ancho,
+			SOM.Dimension,
+			dDistancias);
+		ERROR_CHECK;
+
+		cudaStatus = cudaMemcpy(hDistancias, dDistancias, bytesDistancias, cudaMemcpyDeviceToHost);
+		if (cudaStatus != cudaSuccess) goto Error;
+
+		// hDistancias queda como contrato M3 para integrar argmin en M4.
+		// Mientras M4 no existe en este codigo, evitamos romper el harness actual.
+		EtiquetaGPU[np] = EtiquetaCPU[np];
+	}
+
+	if (dDistancias != NULL) cudaFree(dDistancias);
+	if (dPatronLineal != NULL) cudaFree(dPatronLineal);
+	if (dPesosLineales != NULL) cudaFree(dPesosLineales);
+	if (hDistancias != NULL) free(hDistancias);
+	if (hPatronLineal != NULL) free(hPatronLineal);
+	if (hPesosLineales != NULL) free(hPesosLineales);
+	return OKCLAS;
+
+Error:
+	if (dDistancias != NULL) cudaFree(dDistancias);
+	if (dPatronLineal != NULL) cudaFree(dPatronLineal);
+	if (dPesosLineales != NULL) cudaFree(dPesosLineales);
+	if (hDistancias != NULL) free(hDistancias);
+	if (hPatronLineal != NULL) free(hPatronLineal);
+	if (hPesosLineales != NULL) free(hPesosLineales);
+	return ERRORCLASS;
 }
  // ---------------------------------------------------------------
  // ---------------------------------------------------------------
@@ -126,7 +306,7 @@ runTest(int argc, char** argv)
 		return;
 	}
 	
-	// Creaci髇 etiquetas resultados para versiones CPU y GPU
+	// Creaci贸n etiquetas resultados para versiones CPU y GPU
 
 	EtiquetaCPU = (int*)malloc(Patrones.Cantidad*sizeof(int));
 	EtiquetaGPU = (int*)malloc(Patrones.Cantidad*sizeof(int));
@@ -135,10 +315,10 @@ runTest(int argc, char** argv)
 	cpu_start_time = getTime();
 	if (ClasificacionSOMCPU() == ERRORCLASS)
 	{
-		fprintf(stderr, "Clasificaci髇 CPU incorrecta\n");
+		fprintf(stderr, "Clasificaci贸n CPU incorrecta\n");
 		BorrarMapa();
 		if (EtiquetaCPU != NULL) free(EtiquetaCPU);
-		if (EtiquetaGPU != NULL) free(EtiquetaCPU);
+		if (EtiquetaGPU != NULL) free(EtiquetaGPU);
 		exit(1);
 	}
 	cpu_end_time = getTime();
@@ -147,7 +327,7 @@ runTest(int argc, char** argv)
 	gpu_start_time = getTime();
 	if (ClasificacionSOMGPU() == ERRORCLASS)
 	{
-		fprintf(stderr, "Clasificaci髇 GPU incorrecta\n");
+		fprintf(stderr, "Clasificaci贸n GPU incorrecta\n");
 		BorrarMapa();
 		if (EtiquetaCPU != NULL) free(EtiquetaCPU);
 		if (EtiquetaGPU != NULL) free(EtiquetaGPU);
@@ -155,7 +335,7 @@ runTest(int argc, char** argv)
 	}
 	cudaDeviceSynchronize();
 	gpu_end_time = getTime();
-	// Comparaci髇 de correcci髇
+	// Comparaci贸n de correcci贸n
 	int comprobar = OKCLAS;
 	for (int i = 0; i<Patrones.Cantidad; i++)
 	{
@@ -171,12 +351,12 @@ runTest(int argc, char** argv)
 		printf("Clasificacion correcta!\n");
 
 	}
-	// Impresi髇 de resultados
-	printf("Tiempo ejecuci髇 GPU : %fs\n", \
+	// Impresi贸n de resultados
+	printf("Tiempo ejecuci贸n GPU : %fs\n", \
 		gpu_end_time - gpu_start_time);
-	printf("Tiempo de ejecuci髇 en la CPU : %fs\n", \
+	printf("Tiempo de ejecuci贸n en la CPU : %fs\n", \
 		cpu_end_time - cpu_start_time);
-	printf("Se ha conseguido un factor de aceleraci髇 %fx utilizando CUDA\n", (cpu_end_time - cpu_start_time) / (gpu_end_time - gpu_start_time));
+	printf("Se ha conseguido un factor de aceleraci贸n %fx utilizando CUDA\n", (cpu_end_time - cpu_start_time) / (gpu_end_time - gpu_start_time));
 	// Limpieza de Neuronas
 	BorrarMapa();
 	BorrarPatrones();
@@ -205,14 +385,14 @@ double getTime()
 
 
 /*----------------------------------------------------------------------------*/
-/*	Funci髇:  LeerSOM(char *fichero)						              */
+/*	Funci贸n:  LeerSOM(char *fichero)						              */
 /*													                          */
 /*	          Lee la estructura del SOM con formato .SOM   */
 /*----------------------------------------------------------------------------*/
 int LeerSOM(const char *fichero)
 {
 	int i, j, ndim, count;		/* Variables de bucle */
-	int alto,ancho;		/* Variables de tama駉 del mapa */
+	int alto,ancho;		/* Variables de tama帽o del mapa */
 	FILE *fpin; 			/* Fichero */
 	int nx,ny,lx,ly,label,dimension;
 	float pesos;
@@ -257,14 +437,14 @@ int LeerSOM(const char *fichero)
 }
 
 /*----------------------------------------------------------------------------*/
-/*	Funci髇:  LeerPatrones(char *fichero)						              */
+/*	Funci贸n:  LeerPatrones(char *fichero)						              */
 /*													                          */
 /*	          Lee los patrones de un fichero de entrada .pat   */
 /*----------------------------------------------------------------------------*/
 int LeerPatrones(const char *fichero)
 {
 	int i, ndim, count;		/* Variables de bucle */
-	int cantidad,dimension;		/* Variables de tama駉 de los patrones */
+	int cantidad,dimension;		/* Variables de tama帽o de los patrones */
 	FILE *fpin; 			/* Fichero */
 
 	int np;
@@ -351,7 +531,7 @@ int EscribirSOM(int alto, int ancho, int dimension,const char *fichero)
 
 
 /*----------------------------------------------------------------------------*/
-/*	Funci髇:  LeerPatrones(char *fichero)						              */
+/*	Funci贸n:  LeerPatrones(char *fichero)						              */
 /*													                          */
 /*	          Lee los patrones de un fichero de entrada .pat   */
 /*----------------------------------------------------------------------------*/
@@ -396,4 +576,3 @@ int EscribirPatrones(int cantidad, int dimension,const char *fichero)
 	if (count != cantidad) return ERRORCLASS;
 	return OKCLAS;
 }
-

@@ -11,6 +11,8 @@
 #ifndef _CLASIFICASOM_H_
 #define _CLASIFICASOM_H_
 
+#include <math.h>
+
 /*============================================================================ */
 /* Constantes											                       */
 /*============================================================================ */
@@ -66,7 +68,7 @@
 		int i;
 		if (SOM.Neurona != NULL)
 		{
-			for (i = 0; i < SOM.Ancho; i++)
+			for (i = 0; i < SOM.Alto; i++)
 			if (SOM.Neurona[i] != NULL) free(SOM.Neurona[i]);
 			free(SOM.Neurona);
 			SOM.Neurona = NULL;
@@ -129,13 +131,15 @@
 		float distancia=0;
 		if (y>=0 && y<SOM.Alto && x>=0 && x<SOM.Ancho)
 		{
-		for (int i=0;i<Patrones.Dimension;i++)
-			distancia+=abs(SOM.Neurona[y][x].pesos[i]-Patrones.Pesos[np][i]);
-		distancia/=Patrones.Dimension;
+			for (int i=0;i<Patrones.Dimension;i++)
+			{
+				float diferencia = SOM.Neurona[y][x].pesos[i]-Patrones.Pesos[np][i];
+				distancia += diferencia*diferencia;
+			}
+			distancia = sqrtf(distancia);
 		}
 		return distancia;
 	}
 
 
 #endif // _CLASIFICASOM_H_
-
