@@ -75,6 +75,25 @@
 		}
 	}
 
+	/*
+	 * Copia robusta preservada para rama de desarrollo:
+	 * libera el mapa usando el limite correcto (SOM.Alto).
+	 * Se mantiene separada para no depender de cambios en la funcion base.
+	 */
+	void BorrarMapaRobusto(void)
+	{
+		int i;
+		if (SOM.Neurona != NULL)
+		{
+			for (i = 0; i < SOM.Alto; i++)
+			{
+				if (SOM.Neurona[i] != NULL) free(SOM.Neurona[i]);
+			}
+			free(SOM.Neurona);
+			SOM.Neurona = NULL;
+		}
+	}
+
 	void BorrarPatrones(void)
 	{
 		int i;

@@ -30,6 +30,25 @@
 typedef LARGE_INTEGER timeStamp;
 double getTime();
 
+/*
+ * Copia robusta preservada para rama de desarrollo:
+ * centraliza la liberacion correcta de EtiquetaCPU/EtiquetaGPU y
+ * anula punteros para evitar dobles liberaciones accidentales.
+ */
+void LiberarEtiquetasRobusto(int** etiquetaCPU, int** etiquetaGPU)
+{
+	if (etiquetaCPU != NULL && *etiquetaCPU != NULL)
+	{
+		free(*etiquetaCPU);
+		*etiquetaCPU = NULL;
+	}
+	if (etiquetaGPU != NULL && *etiquetaGPU != NULL)
+	{
+		free(*etiquetaGPU);
+		*etiquetaGPU = NULL;
+	}
+}
+
 /*----------------------------------------------------------------------------*/
 /* Helpers M3: indices row-major y distancia euclidea sobre arrays planos     */
 /*----------------------------------------------------------------------------*/
@@ -317,8 +336,7 @@ runTest(int argc, char** argv)
 	{
 		fprintf(stderr, "Clasificación CPU incorrecta\n");
 		BorrarMapa();
-		if (EtiquetaCPU != NULL) free(EtiquetaCPU);
-		if (EtiquetaGPU != NULL) free(EtiquetaGPU);
+		LiberarEtiquetasRobusto(&EtiquetaCPU, &EtiquetaGPU);
 		exit(1);
 	}
 	cpu_end_time = getTime();
@@ -329,8 +347,7 @@ runTest(int argc, char** argv)
 	{
 		fprintf(stderr, "Clasificación GPU incorrecta\n");
 		BorrarMapa();
-		if (EtiquetaCPU != NULL) free(EtiquetaCPU);
-		if (EtiquetaGPU != NULL) free(EtiquetaGPU);
+		LiberarEtiquetasRobusto(&EtiquetaCPU, &EtiquetaGPU);
 		return;
 	}
 	cudaDeviceSynchronize();
@@ -360,8 +377,7 @@ runTest(int argc, char** argv)
 	// Limpieza de Neuronas
 	BorrarMapa();
 	BorrarPatrones();
-	if (EtiquetaCPU != NULL) free(EtiquetaCPU);
-	if (EtiquetaGPU != NULL) free(EtiquetaGPU);
+	LiberarEtiquetasRobusto(&EtiquetaCPU, &EtiquetaGPU);
 	return;
 }
 
