@@ -71,6 +71,32 @@ int ClasificacionSOMCPU()
 // ---------------------------------------------------------------
 // ---------------------------------------------------------------
 
+/*----------------------------------------------------------------------------*/
+/* Kernel M4 (Julián): Reducción en árbol para encontrar el Argmin            */
+/*----------------------------------------------------------------------------*/
+__global__ void KernelReduccion(const float* distancias, const int* labels, int totalNeuronas, int* etiquetaSalida)
+{
+	// Restringimos el trabajo a un único hilo (el primero del primer bloque)
+	if (threadIdx.x == 0 && blockIdx.x == 0)
+	{
+		float min_dist = distancias[0];
+		int min_idx = 0;
+
+		// Bucle secuencial clásico
+		for (int i = 1; i < totalNeuronas; ++i)
+		{
+			if (distancias[i] < min_dist)
+			{
+				min_dist = distancias[i];
+				min_idx = i;
+			}
+		}
+
+		// Una vez encontrado el índice ganador, sacamos su etiqueta
+		*etiquetaSalida = labels[min_idx];
+	}
+}
+
  int ClasificacionSOMGPU()
 {
 
@@ -205,9 +231,9 @@ double getTime()
 
 
 /*----------------------------------------------------------------------------*/
-/*	Función:  LeerSOM(char *fichero)						              */
+/*	Función:  LeerSOM(char *fichero)						                  */
 /*													                          */
-/*	          Lee la estructura del SOM con formato .SOM   */
+/*	          Lee la estructura del SOM con formato .SOM                      */
 /*----------------------------------------------------------------------------*/
 int LeerSOM(const char *fichero)
 {
@@ -259,7 +285,7 @@ int LeerSOM(const char *fichero)
 /*----------------------------------------------------------------------------*/
 /*	Función:  LeerPatrones(char *fichero)						              */
 /*													                          */
-/*	          Lee los patrones de un fichero de entrada .pat   */
+/*	          Lee los patrones de un fichero de entrada .pat                  */
 /*----------------------------------------------------------------------------*/
 int LeerPatrones(const char *fichero)
 {
@@ -353,7 +379,7 @@ int EscribirSOM(int alto, int ancho, int dimension,const char *fichero)
 /*----------------------------------------------------------------------------*/
 /*	Función:  LeerPatrones(char *fichero)						              */
 /*													                          */
-/*	          Lee los patrones de un fichero de entrada .pat   */
+/*	          Lee los patrones de un fichero de entrada .pat                  */
 /*----------------------------------------------------------------------------*/
 int EscribirPatrones(int cantidad, int dimension,const char *fichero)
 {
