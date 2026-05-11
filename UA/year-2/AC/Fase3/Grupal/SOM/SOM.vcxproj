@@ -10,6 +10,12 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="src\clasificacionSOM.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\clasificacionSOM.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2BFCCF9F-C163-5747-50F5-24C953AFAF2B}</ProjectGuid>
     <RootNamespace>SOM</RootNamespace>

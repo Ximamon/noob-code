@@ -134,6 +134,37 @@ static void CopiarPatronLineal(int np, float* patronLineal)
 	}
 }
 
+static void CopiarLabelsLineal(int* labelsLineales)
+{
+	for (int y = 0; y < SOM.Alto; ++y)
+		for (int x = 0; x < SOM.Ancho; ++x)
+			labelsLineales[IndiceNeuronaRowMajor(y, x, SOM.Ancho)] = SOM.Neurona[y][x].label;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Kernel M4 (Julián): Reducción Naive (Búsqueda secuencial en 1 hilo)        */
+/*----------------------------------------------------------------------------*/
+__global__ void KernelReduccion(const float* distancias, int totalNeuronas, int* indiceGanador)
+{
+	// Forzamos a que solo el primer hilo de la GPU haga el trabajo
+	if (threadIdx.x == 0 && blockIdx.x == 0)
+	{
+		float min_dist = distancias[0];
+		int min_idx = 0;
+
+		for (int i = 1; i < totalNeuronas; ++i)
+		{
+			if (distancias[i] < min_dist)
+			{
+				min_dist = distancias[i];
+				min_idx = i;
+			}
+		}
+		// Devolvemos la posición (índice) donde estaba la distancia más corta
+		*indiceGanador = min_idx;
+	}
+}
+
 /*----------------------------------------------------------------------------*/
 /*  FUNCION A PARALELIZAR  (versión secuencial-CPU)  				          */
 /*	Implementa la clasificación basada en SOM de un conjunto de patrones      */
@@ -176,16 +207,19 @@ int ClasificacionSOMCPU()
 // ---------------------------------------------------------------
 // ---------------------------------------------------------------
 
- int ClasificacionSOMGPU()
+int ClasificacionSOMGPU()
 {
-	// Implementacion intencionalmente limitada a M3 (sin reduccion/argmin de M4).
-	cudaError_t cudaStatus = cudaSuccess;
+	int estado_final = OKCLAS; // Control de flujo sin goto
+
+	// 1. Declaración de punteros
 	float* hPesosLineales = NULL;
 	float* hPatronLineal = NULL;
-	float* hDistancias = NULL;
+	int* hLabelsLineales = NULL; // NUEVO M4: Array para etiquetas
+
 	float* dPesosLineales = NULL;
 	float* dPatronLineal = NULL;
 	float* dDistancias = NULL;
+	int* dIndiceGanador = NULL;  // NUEVO M4: Variable para que tu kernel devuelva el ganador
 
 	if (Patrones.Dimension != SOM.Dimension) return ERRORCLASS;
 
@@ -193,69 +227,78 @@ int ClasificacionSOMCPU()
 	const size_t bytesPesos = (size_t)totalNeuronas * (size_t)SOM.Dimension * sizeof(float);
 	const size_t bytesPatron = (size_t)SOM.Dimension * sizeof(float);
 	const size_t bytesDistancias = (size_t)totalNeuronas * sizeof(float);
+	const size_t bytesLabels = (size_t)totalNeuronas * sizeof(int);
 
+	// 2. Reserva en Host
 	hPesosLineales = (float*)malloc(bytesPesos);
 	hPatronLineal = (float*)malloc(bytesPatron);
-	hDistancias = (float*)malloc(bytesDistancias);
-	if (hPesosLineales == NULL || hPatronLineal == NULL || hDistancias == NULL) goto Error;
+	hLabelsLineales = (int*)malloc(bytesLabels);
 
-	CopiarSOMLineal(hPesosLineales);
+	if (hPesosLineales == NULL || hPatronLineal == NULL || hLabelsLineales == NULL)
+		estado_final = ERRORCLASS;
 
-	cudaStatus = cudaMalloc((void**)&dPesosLineales, bytesPesos);
-	if (cudaStatus != cudaSuccess) goto Error;
-	cudaStatus = cudaMalloc((void**)&dPatronLineal, bytesPatron);
-	if (cudaStatus != cudaSuccess) goto Error;
-	cudaStatus = cudaMalloc((void**)&dDistancias, bytesDistancias);
-	if (cudaStatus != cudaSuccess) goto Error;
-
-	cudaStatus = cudaMemcpy(dPesosLineales, hPesosLineales, bytesPesos, cudaMemcpyHostToDevice);
-	if (cudaStatus != cudaSuccess) goto Error;
-
-	// Configuracion base recomendada en la planificacion (1 hilo por neurona en grid 2D).
-	const dim3 blockDim(16, 16);
-	const dim3 gridDim(
-		(SOM.Ancho + blockDim.x - 1) / blockDim.x,
-		(SOM.Alto + blockDim.y - 1) / blockDim.y);
-
-	for (int np = 0; np < Patrones.Cantidad; ++np)
+	if (estado_final == OKCLAS)
 	{
-		CopiarPatronLineal(np, hPatronLineal);
-		cudaStatus = cudaMemcpy(dPatronLineal, hPatronLineal, bytesPatron, cudaMemcpyHostToDevice);
-		if (cudaStatus != cudaSuccess) goto Error;
+		// Copiamos datos al formato lineal
+		CopiarSOMLineal(hPesosLineales);
+		CopiarLabelsLineal(hLabelsLineales); // NUEVO M4
 
-		KernelDistanciasVecindario<<<gridDim, blockDim, bytesPatron>>>(
-			dPesosLineales,
-			dPatronLineal,
-			SOM.Alto,
-			SOM.Ancho,
-			SOM.Dimension,
-			dDistancias);
-		ERROR_CHECK;
-
-		cudaStatus = cudaMemcpy(hDistancias, dDistancias, bytesDistancias, cudaMemcpyDeviceToHost);
-		if (cudaStatus != cudaSuccess) goto Error;
-
-		// hDistancias queda como contrato M3 para integrar argmin en M4.
-		// Mientras M4 no existe en este codigo, evitamos romper el harness actual.
-		EtiquetaGPU[np] = EtiquetaCPU[np];
+		// 3. Reserva en Device (GPU)
+		if (cudaMalloc((void**)&dPesosLineales, bytesPesos) != cudaSuccess) estado_final = ERRORCLASS;
+		if (estado_final == OKCLAS && cudaMalloc((void**)&dPatronLineal, bytesPatron) != cudaSuccess) estado_final = ERRORCLASS;
+		if (estado_final == OKCLAS && cudaMalloc((void**)&dDistancias, bytesDistancias) != cudaSuccess) estado_final = ERRORCLASS;
+		if (estado_final == OKCLAS && cudaMalloc((void**)&dIndiceGanador, sizeof(int)) != cudaSuccess) estado_final = ERRORCLASS; // NUEVO M4
 	}
 
-	if (dDistancias != NULL) cudaFree(dDistancias);
-	if (dPatronLineal != NULL) cudaFree(dPatronLineal);
-	if (dPesosLineales != NULL) cudaFree(dPesosLineales);
-	if (hDistancias != NULL) free(hDistancias);
-	if (hPatronLineal != NULL) free(hPatronLineal);
-	if (hPesosLineales != NULL) free(hPesosLineales);
-	return OKCLAS;
+	if (estado_final == OKCLAS)
+	{
+		// 4. Copia inicial Host -> Device
+		if (cudaMemcpy(dPesosLineales, hPesosLineales, bytesPesos, cudaMemcpyHostToDevice) != cudaSuccess) estado_final = ERRORCLASS;
 
-Error:
+		const dim3 blockDimM3(16, 16);
+		const dim3 gridDimM3((SOM.Ancho + blockDimM3.x - 1) / blockDimM3.x, (SOM.Alto + blockDimM3.y - 1) / blockDimM3.y);
+
+		for (int np = 0; np < Patrones.Cantidad && estado_final == OKCLAS; ++np)
+		{
+			CopiarPatronLineal(np, hPatronLineal);
+			if (cudaMemcpy(dPatronLineal, hPatronLineal, bytesPatron, cudaMemcpyHostToDevice) != cudaSuccess) {
+				estado_final = ERRORCLASS; break;
+			}
+
+			// --- FASE M3: Kernel de Distancias (Ximo) ---
+			KernelDistanciasVecindario<<<gridDimM3, blockDimM3, bytesPatron >>>(
+				dPesosLineales, dPatronLineal, SOM.Alto, SOM.Ancho, SOM.Dimension, dDistancias);
+
+			if (cudaGetLastError() != cudaSuccess) { estado_final = ERRORCLASS; break; }
+
+			// --- FASE M4: Tu Kernel Naive de Reducción ---
+			// Solo 1 bloque y 1 hilo
+			KernelReduccion<<<1, 1 >>>(dDistancias, totalNeuronas, dIndiceGanador);
+
+			if (cudaGetLastError() != cudaSuccess) { estado_final = ERRORCLASS; break; }
+
+			// --- RESULTADO: Extraer el ganador ---
+			int hIndiceGanador = -1;
+			if (cudaMemcpy(&hIndiceGanador, dIndiceGanador, sizeof(int), cudaMemcpyDeviceToHost) != cudaSuccess) {
+				estado_final = ERRORCLASS; break;
+			}
+
+			// Buscamos la etiqueta real usando el índice que encontró tu kernel
+			EtiquetaGPU[np] = hLabelsLineales[hIndiceGanador];
+		}
+	}
+
+	// 5. Limpieza de memoria centralizada (se ejecuta siempre al final)
 	if (dDistancias != NULL) cudaFree(dDistancias);
 	if (dPatronLineal != NULL) cudaFree(dPatronLineal);
 	if (dPesosLineales != NULL) cudaFree(dPesosLineales);
-	if (hDistancias != NULL) free(hDistancias);
+	if (dIndiceGanador != NULL) cudaFree(dIndiceGanador);
+
 	if (hPatronLineal != NULL) free(hPatronLineal);
 	if (hPesosLineales != NULL) free(hPesosLineales);
-	return ERRORCLASS;
+	if (hLabelsLineales != NULL) free(hLabelsLineales);
+
+	return estado_final;
 }
  // ---------------------------------------------------------------
  // ---------------------------------------------------------------
