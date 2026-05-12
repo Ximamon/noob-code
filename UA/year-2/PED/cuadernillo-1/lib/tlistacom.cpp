@@ -427,7 +427,7 @@ bool TListaCom::Borrar(TListaPos &p) {
 
     delete aBorrar;
 
-    // Una vez eliminado el elemento, la posición tiene que pasar a estar vacía [cite: 317]
+    // Una vez eliminado el elemento, la posición tiene que pasar a estar vacía
     p.pos = nullptr;
 
     return true;
