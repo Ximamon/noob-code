@@ -21,13 +21,21 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include "clasificacionSOM.h"
-#include <Windows.h>
+
+// --- ADAPTACIÓN MULTIPLATAFORMA ---
+#if defined(_WIN32) || defined(_WIN64)
+    #include <Windows.h>
+    typedef LARGE_INTEGER timeStamp;
+#else
+    #include <sys/time.h>
+    #include <stddef.h>
+#endif
+// ----------------------------------
 
 
 
 #define ERROR_CHECK { cudaError_t err; if ((err = cudaGetLastError()) != cudaSuccess) { printf("CUDA error: %s, line %d\n", cudaGetErrorString(err), __LINE__);}}
 
-typedef LARGE_INTEGER timeStamp;
 double getTime();
 
 /*----------------------------------------------------------------------------*/
@@ -58,6 +66,7 @@ __device__ float DistanciaEuclideaNeurona(const float* pesosSOM, const float* pa
 
 /*----------------------------------------------------------------------------*/
 /* Kernel M3 (Ximo): distancia(neurona) + distancia(vecindario cruz valido)   */
+/* Se encarga de calcular las distancias de cada neurona al patron de entrada */
 /*----------------------------------------------------------------------------*/
 __global__ void KernelDistanciasVecindario(
 	const float* pesosSOM,
@@ -134,16 +143,17 @@ static void CopiarPatronLineal(int np, float* patronLineal)
 	}
 }
 
-static void CopiarLabelsLineal(int* labelsLineales)
+static void CopiarEtiquetasLineal(int* labelsLineales)
 {
 	for (int y = 0; y < SOM.Alto; ++y)
 		for (int x = 0; x < SOM.Ancho; ++x)
 			labelsLineales[IndiceNeuronaRowMajor(y, x, SOM.Ancho)] = SOM.Neurona[y][x].label;
 }
 
-/*----------------------------------------------------------------------------*/
-/* Kernel M4 (Julián): Reducción Naive (Búsqueda secuencial en 1 hilo)        */
-/*----------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------*/
+/*    Kernel M4 (Julián): Reducción Naive (Búsqueda secuencial en 1 hilo)         */
+/* Se encarga de encontrar el índice de la neurona ganadora (con menor distancia) */
+/*--------------------------------------------------------------------------------*/
 __global__ void KernelReduccion(const float* distancias, int totalNeuronas, int* indiceGanador)
 {
 	// Forzamos a que solo el primer hilo de la GPU haga el trabajo
@@ -168,7 +178,8 @@ __global__ void KernelReduccion(const float* distancias, int totalNeuronas, int*
 /*----------------------------------------------------------------------------*/
 /*  FUNCION A PARALELIZAR  (versión secuencial-CPU)  				          */
 /*	Implementa la clasificación basada en SOM de un conjunto de patrones      */
-/*  de entrada definidos en un fichero                                         */
+/*  de entrada definidos en un fichero                                        */
+/*							!!!!! NO TOCAR !!!!!						      */
 /*----------------------------------------------------------------------------*/
 int ClasificacionSOMCPU()
 {
@@ -185,7 +196,7 @@ int ClasificacionSOMCPU()
 				distancia=CalculaDistancia(y,x,np);     // CalculaDistancia entre neurona (y,x) y patrón np
 				for (int vy=-1;vy<2;vy++)               // Calculo en la vecindad
 					for (int vx=-1;vx<2;vx++)
-						if ((vx == 0) ^ (vy == 0))         // No comprobar con la misma neurona
+						if ((vx == 0) ^ (vy == 0))         // No comprobar con la misma neurona, se usa XOR en vez de AND para evirtar sumar solo las diagonales 
 						   distancia+=CalculaDistancia(y+vy,x+vx,np);
 				if (distancia < distanciaMenor)
 				{
@@ -242,7 +253,7 @@ int ClasificacionSOMGPU()
 	{
 		// Copiamos datos al formato lineal
 		CopiarSOMLineal(hPesosLineales);
-		CopiarLabelsLineal(hLabelsLineales); // NUEVO M4
+		CopiarEtiquetasLineal(hLabelsLineales); // NUEVO M4
 
 		// 3. Reserva en Device (GPU)
 		if (cudaMalloc((void**)&dPesosLineales, bytesPesos) != cudaSuccess) estado_final = ERRORCLASS;
@@ -317,6 +328,7 @@ int ClasificacionSOMGPU()
 
 ////////////////////////////////////////////////////////////////////////////////
 //PROGRAMA PRINCIPAL
+/*							!!!!! NO TOCAR !!!!!						      */
 ////////////////////////////////////////////////////////////////////////////////
 void
 runTest(int argc, char** argv)
@@ -419,19 +431,28 @@ main(int argc, char** argv)
 /* Funciones auxiliares */
 double getTime()
 {
-	timeStamp start;
-	timeStamp dwFreq;
-	QueryPerformanceFrequency(&dwFreq);
-	QueryPerformanceCounter(&start);
-	return double(start.QuadPart) / double(dwFreq.QuadPart);
+#if defined(_WIN32) || defined(_WIN64)
+    // Implementación original para Windows
+    timeStamp start;
+    timeStamp dwFreq;
+    QueryPerformanceFrequency(&dwFreq);
+    QueryPerformanceCounter(&start);
+    return double(start.QuadPart) / double(dwFreq.QuadPart);
+#else
+    // Implementación para sistemas POSIX (Linux/macOS)
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
+#endif
 }
 
 
 
 /*----------------------------------------------------------------------------*/
-/*	Función:  LeerSOM(char *fichero)						              */
+/*	Función:  LeerSOM(char *fichero)						             	  */
 /*													                          */
-/*	          Lee la estructura del SOM con formato .SOM   */
+/*	          Lee la estructura del SOM con formato .SOM   					  */
+/*							!!!!! NO TOCAR !!!!!						      */
 /*----------------------------------------------------------------------------*/
 int LeerSOM(const char *fichero)
 {
@@ -483,7 +504,8 @@ int LeerSOM(const char *fichero)
 /*----------------------------------------------------------------------------*/
 /*	Función:  LeerPatrones(char *fichero)						              */
 /*													                          */
-/*	          Lee los patrones de un fichero de entrada .pat   */
+/*	          Lee los patrones de un fichero de entrada .pat   			      */
+/*							!!!!! NO TOCAR !!!!!						      */
 /*----------------------------------------------------------------------------*/
 int LeerPatrones(const char *fichero)
 {
@@ -528,6 +550,12 @@ int LeerPatrones(const char *fichero)
 	return OKCLAS;
 }
 
+/*----------------------------------------------------------------------------*/
+/*	Función:  EscribirSOM(char *fichero)						              */
+/*													                          */
+/*	          Escribe la estructura del SOM en un fichero de salida .SOM   	  */
+/*							!!!!! NO TOCAR !!!!!						      */
+/*----------------------------------------------------------------------------*/
 int EscribirSOM(int alto, int ancho, int dimension,const char *fichero)
 {
 	int i, j, ndim, count;		/* Variables de bucle */
@@ -575,9 +603,10 @@ int EscribirSOM(int alto, int ancho, int dimension,const char *fichero)
 
 
 /*----------------------------------------------------------------------------*/
-/*	Función:  LeerPatrones(char *fichero)						              */
+/*	Función:  EscribirPatrones(char *fichero)						          */
 /*													                          */
-/*	          Lee los patrones de un fichero de entrada .pat   */
+/*	          Escribe los patrones en un fichero de salida .pat   	          */
+/*							!!!!! NO TOCAR !!!!!						      */
 /*----------------------------------------------------------------------------*/
 int EscribirPatrones(int cantidad, int dimension,const char *fichero)
 {
