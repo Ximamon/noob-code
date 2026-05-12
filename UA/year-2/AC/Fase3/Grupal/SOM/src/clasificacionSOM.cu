@@ -185,7 +185,7 @@ int ClasificacionSOMCPU()
 				distancia=CalculaDistancia(y,x,np);     // CalculaDistancia entre neurona (y,x) y patrón np
 				for (int vy=-1;vy<2;vy++)               // Calculo en la vecindad
 					for (int vx=-1;vx<2;vx++)
-						if (vx != 0 && vy != 0)         // No comprobar con la misma neurona
+						if ((vx == 0) ^ (vy == 0))         // No comprobar con la misma neurona
 						   distancia+=CalculaDistancia(y+vy,x+vx,np);
 				if (distancia < distanciaMenor)
 				{
@@ -220,8 +220,10 @@ int ClasificacionSOMGPU()
 	float* dDistancias = NULL;
 	int* dIndiceGanador = NULL;  // NUEVO M4: Variable para que tu kernel devuelva el ganador
 
+	fprintf(stderr, "Iniciando ClasificacionSOMGPU...\n");
 	if (Patrones.Dimension != SOM.Dimension) return ERRORCLASS;
 
+	fprintf(stderr, "SOM: %dx%d, Dim: %d | Patrones: %d, Dim: %d\n", SOM.Alto, SOM.Ancho, SOM.Dimension, Patrones.Cantidad, Patrones.Dimension);
 	const int totalNeuronas = SOM.Alto * SOM.Ancho;
 	const size_t bytesPesos = (size_t)totalNeuronas * (size_t)SOM.Dimension * sizeof(float);
 	const size_t bytesPatron = (size_t)SOM.Dimension * sizeof(float);
@@ -357,7 +359,7 @@ runTest(int argc, char** argv)
 	cpu_start_time = getTime();
 	if (ClasificacionSOMCPU() == ERRORCLASS)
 	{
-		fprintf(stderr, "Clasificación CPU incorrecta\n");
+		fprintf(stderr, "Clasificacion CPU incorrecta\n");
 		BorrarMapa();
 		if (EtiquetaCPU != NULL) free(EtiquetaCPU);
 		if (EtiquetaGPU != NULL) free(EtiquetaGPU);
@@ -369,7 +371,7 @@ runTest(int argc, char** argv)
 	gpu_start_time = getTime();
 	if (ClasificacionSOMGPU() == ERRORCLASS)
 	{
-		fprintf(stderr, "Clasificación GPU incorrecta\n");
+		fprintf(stderr, "Clasificacion GPU incorrecta\n");
 		BorrarMapa();
 		if (EtiquetaCPU != NULL) free(EtiquetaCPU);
 		if (EtiquetaGPU != NULL) free(EtiquetaGPU);
@@ -394,11 +396,11 @@ runTest(int argc, char** argv)
 
 	}
 	// Impresión de resultados
-	printf("Tiempo ejecución GPU : %fs\n", \
+	printf("Tiempo ejecucion GPU : %fs\n", \
 		gpu_end_time - gpu_start_time);
-	printf("Tiempo de ejecución en la CPU : %fs\n", \
+	printf("Tiempo de ejecucion en la CPU : %fs\n", \
 		cpu_end_time - cpu_start_time);
-	printf("Se ha conseguido un factor de aceleración %fx utilizando CUDA\n", (cpu_end_time - cpu_start_time) / (gpu_end_time - gpu_start_time));
+	printf("Se ha conseguido un factor de aceleracion %fx utilizando CUDA\n", (cpu_end_time - cpu_start_time) / (gpu_end_time - gpu_start_time));
 	// Limpieza de Neuronas
 	BorrarMapa();
 	BorrarPatrones();

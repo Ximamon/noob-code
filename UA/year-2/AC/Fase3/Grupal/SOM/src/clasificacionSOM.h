@@ -92,6 +92,7 @@
 		int i,j;
 		SOM.Alto = Alto;
 		SOM.Ancho = Ancho;
+		SOM.Dimension = Dimension; // FIX NUESTRO
 		SOM.Neurona = (TNeurona**)malloc(SOM.Alto*sizeof(TNeurona*));
 		if (SOM.Neurona == NULL) return ERRORCLASS;
 		for (j = 0; j < SOM.Alto; j++)
