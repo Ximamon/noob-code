@@ -183,11 +183,10 @@ int ClasificacionSOMCPU()
 			for (int x = 0; x<SOM.Ancho; x++)
 			{
 				distancia=CalculaDistancia(y,x,np);     // CalculaDistancia entre neurona (y,x) y patrón np
-				// Regla del PDF: vecindario cruz, sin diagonales.
-				if (y > 0) distancia += CalculaDistancia(y - 1, x, np);
-				if (y < SOM.Alto - 1) distancia += CalculaDistancia(y + 1, x, np);
-				if (x > 0) distancia += CalculaDistancia(y, x - 1, np);
-				if (x < SOM.Ancho - 1) distancia += CalculaDistancia(y, x + 1, np);
+				for (int vy=-1;vy<2;vy++)               // Calculo en la vecindad
+					for (int vx=-1;vx<2;vx++)
+						if (vx != 0 && vy != 0)         // No comprobar con la misma neurona
+						   distancia+=CalculaDistancia(y+vy,x+vx,np);
 				if (distancia < distanciaMenor)
 				{
 					distanciaMenor=distancia;  // Neurona con menor distancia
