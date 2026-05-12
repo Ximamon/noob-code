@@ -158,24 +158,58 @@ static void CopiarEtiquetasLineal(int* labelsLineales)
 /*    Kernel M4 (Julián): Reducción Naive (Búsqueda secuencial en 1 hilo)         */
 /* Se encarga de encontrar el índice de la neurona ganadora (con menor distancia) */
 /*--------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/* Kernel M4 (Julián): Reducción en Árbol (Búsqueda paralela del mínimo)      */
+/*----------------------------------------------------------------------------*/
 __global__ void KernelReduccion(const float* distancias, int totalNeuronas, const int* labelsLineales, int* etiquetasSalida, int np)
 {
-	if (threadIdx.x == 0 && blockIdx.x == 0)
-	{
-		float min_dist = distancias[0];
-		int min_idx = 0;
+	// Memoria compartida para que los hilos del bloque se comuniquen ultrarrápido
+	// Asumimos bloques de hasta 1024 hilos (el máximo de CUDA por bloque)
+	__shared__ float sDist[1024];
+	__shared__ int sIndex[1024];
 
-		for (int i = 1; i < totalNeuronas; ++i)
+	int tid = threadIdx.x;
+	
+	float min_dist = 1e38f; // Empezamos con un valor altísimo (infinito)
+	int min_idx = -1;
+
+	// 1. Cada hilo busca el mínimo de los elementos que le tocan (Grid-Stride Loop)
+	// Esto permite procesar cualquier tamaño de mapa SOM, incluso si hay más neuronas que hilos
+	for (int i = tid; i < totalNeuronas; i += blockDim.x)
+	{
+		float d = distancias[i];
+		if (d < min_dist)
 		{
-			if (distancias[i] < min_dist)
+			min_dist = d;
+			min_idx = i;
+		}
+	}
+
+	// 2. Guardamos el mínimo local de este hilo en la memoria compartida
+	sDist[tid] = min_dist;
+	sIndex[tid] = min_idx;
+	__syncthreads(); // Esperamos a que todos los hilos hayan escrito en shared
+
+	// 3. Reducción en árbol paralela (Tree Reduction)
+	// Vamos dividiendo el bloque a la mitad en cada iteración
+	for (int s = blockDim.x / 2; s > 0; s >>= 1)
+	{
+		if (tid < s)
+		{
+			// El hilo compara su mínimo con el del hilo "compañero" al otro lado de la mitad
+			if (sDist[tid + s] < sDist[tid])
 			{
-				min_dist = distancias[i];
-				min_idx = i;
+				sDist[tid] = sDist[tid + s];
+				sIndex[tid] = sIndex[tid + s];
 			}
 		}
-		// Usamos el índice ganador para buscar la etiqueta y la guardamos en la posición del patrón actual
-		etiquetasSalida[np] = labelsLineales[min_idx];
+		__syncthreads(); // Sincronizamos en cada ronda del torneo
 	}
+
+	// 4. Fin del torneo: El hilo 0 tiene el mínimo absoluto en la posición 0
+	if (tid == 0)
+		etiquetasSalida[np] = labelsLineales[sIndex[0]];
+	
 }
 
 /*----------------------------------------------------------------------------*/
@@ -235,8 +269,10 @@ int ClasificacionSOMGPU()
 	float* dDistancias = NULL;
 	int* dEtiquetasSalida = NULL; // NUEVO: Array de resultados en Device
 
+	fprintf(stderr, "Iniciando ClasificacionSOMGPU...\n");
 	if (Patrones.Dimension != SOM.Dimension) return ERRORCLASS;
 
+	fprintf(stderr, "SOM: %dx%d, Dimension: %d\n", SOM.Alto, SOM.Ancho, SOM.Dimension);
 	const int totalNeuronas = SOM.Alto * SOM.Ancho;
 	const size_t bytesPesos = (size_t)totalNeuronas * (size_t)SOM.Dimension * sizeof(float);
 	const size_t bytesLabels = (size_t)totalNeuronas * sizeof(int);
@@ -290,7 +326,7 @@ int ClasificacionSOMGPU()
 
 			// --- FASE M4: Kernel de Reducción ---
 			// Le pasamos dLabelsLineales y dEtiquetasSalida para que guarde el resultado final
-			KernelReduccion<<<1, 1>>>(dDistancias, totalNeuronas, dLabelsLineales, dEtiquetasSalida, np);
+			KernelReduccion<<<1, 256>>>(dDistancias, totalNeuronas, dLabelsLineales, dEtiquetasSalida, np);
 		}
 
 		// Sincronizamos para asegurar que todos los kernels han terminado
@@ -428,7 +464,7 @@ int
 main(int argc, char** argv)
 {
 	runTest(argc, argv);
-	getchar();
+	// getchar();
 }
 
 /* Funciones auxiliares */
