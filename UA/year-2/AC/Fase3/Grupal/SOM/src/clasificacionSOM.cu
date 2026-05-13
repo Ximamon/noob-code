@@ -38,7 +38,7 @@
 /*----------------------------------------------------------------------------*/
 // BLOCK_DIM_M3: Define la malla 2D de hilos para el cálculo de distancias.
 // En Ampere (RTX 3050) 16x16 suele ir perfecto, pero en Turing (1660 Super)
-// podéis probar 32x8 o 32x16 para maximizar el uso de registros.
+// probar 32x8 o 32x16 para maximizar el uso de registros.
 #define BLOCK_DIM_X_M3 16
 #define BLOCK_DIM_Y_M3 16
 
