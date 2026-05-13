@@ -80,6 +80,8 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <GenerateLineInfo>true</GenerateLineInfo>
+      <CodeGeneration>compute_75,sm_75;compute_86,sm_86</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
