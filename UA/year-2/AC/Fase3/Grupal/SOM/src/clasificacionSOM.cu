@@ -33,6 +33,20 @@
 // ----------------------------------
 
 
+/*----------------------------------------------------------------------------*/
+/* PARÁMETROS DE MICROARQUITECTURA (Para tunear en el Cudathon)               */
+/*----------------------------------------------------------------------------*/
+// BLOCK_DIM_M3: Define la malla 2D de hilos para el cálculo de distancias.
+// En Ampere (RTX 3050) 16x16 suele ir perfecto, pero en Turing (1660 Super)
+// podéis probar 32x8 o 32x16 para maximizar el uso de registros.
+#define BLOCK_DIM_X_M3 16
+#define BLOCK_DIM_Y_M3 16
+
+// BLOCK_SIZE_M4: Define los hilos que participan en la Reducción en Árbol.
+// Debe ser potencia de 2 (128, 256, 512). Modificar este valor altera la 
+// ocupación (Occupancy) y la cantidad de Memoria Compartida reservada.
+#define BLOCK_SIZE_M4 256
+
 
 #define ERROR_CHECK { cudaError_t err; if ((err = cudaGetLastError()) != cudaSuccess) { printf("CUDA error: %s, line %d\n", cudaGetErrorString(err), __LINE__);}}
 
@@ -158,15 +172,15 @@ static void CopiarEtiquetasLineal(int* labelsLineales)
 /*    Kernel M4 (Julián): Reducción Naive (Búsqueda secuencial en 1 hilo)         */
 /* Se encarga de encontrar el índice de la neurona ganadora (con menor distancia) */
 /*--------------------------------------------------------------------------------*/
+
 /*----------------------------------------------------------------------------*/
 /* Kernel M4 (Julián): Reducción en Árbol (Búsqueda paralela del mínimo)      */
 /*----------------------------------------------------------------------------*/
 __global__ void KernelReduccion(const float* distancias, int totalNeuronas, const int* labelsLineales, int* etiquetasSalida, int np)
 {
-	// Memoria compartida para que los hilos del bloque se comuniquen ultrarrápido
-	// Asumimos bloques de hasta 1024 hilos (el máximo de CUDA por bloque)
-	__shared__ float sDist[1024];
-	__shared__ int sIndex[1024];
+	// Arrays en caché L1 parametrizados por la macro de microarquitectura
+	__shared__ float sDist[BLOCK_SIZE_M4];
+	__shared__ int sIndex[BLOCK_SIZE_M4];
 
 	int tid = threadIdx.x;
 	
@@ -174,7 +188,6 @@ __global__ void KernelReduccion(const float* distancias, int totalNeuronas, cons
 	int min_idx = -1;
 
 	// 1. Cada hilo busca el mínimo de los elementos que le tocan (Grid-Stride Loop)
-	// Esto permite procesar cualquier tamaño de mapa SOM, incluso si hay más neuronas que hilos
 	for (int i = tid; i < totalNeuronas; i += blockDim.x)
 	{
 		float d = distancias[i];
@@ -191,12 +204,10 @@ __global__ void KernelReduccion(const float* distancias, int totalNeuronas, cons
 	__syncthreads(); // Esperamos a que todos los hilos hayan escrito en shared
 
 	// 3. Reducción en árbol paralela (Tree Reduction)
-	// Vamos dividiendo el bloque a la mitad en cada iteración
 	for (int s = blockDim.x / 2; s > 0; s >>= 1)
 	{
 		if (tid < s)
 		{
-			// El hilo compara su mínimo con el del hilo "compañero" al otro lado de la mitad
 			if (sDist[tid + s] < sDist[tid])
 			{
 				sDist[tid] = sDist[tid + s];
@@ -206,10 +217,9 @@ __global__ void KernelReduccion(const float* distancias, int totalNeuronas, cons
 		__syncthreads(); // Sincronizamos en cada ronda del torneo
 	}
 
-	// 4. Fin del torneo: El hilo 0 tiene el mínimo absoluto en la posición 0
+	// 4. Fin del torneo: El hilo 0 tiene el mínimo absoluto
 	if (tid == 0)
 		etiquetasSalida[np] = labelsLineales[sIndex[0]];
-	
 }
 
 /*----------------------------------------------------------------------------*/
@@ -311,7 +321,8 @@ int ClasificacionSOMGPU()
 		cudaMemcpy(dTodosPatrones, hTodosPatrones, bytesTodosPatrones, cudaMemcpyHostToDevice);
 		cudaMemcpy(dLabelsLineales, hLabelsLineales, bytesLabels, cudaMemcpyHostToDevice);
 
-		const dim3 blockDimM3(16, 16);
+		// Uso de los parámetros de microarquitectura definidos en cabecera
+		const dim3 blockDimM3(BLOCK_DIM_X_M3, BLOCK_DIM_Y_M3);
 		const dim3 gridDimM3((SOM.Ancho + blockDimM3.x - 1) / blockDimM3.x, (SOM.Alto + blockDimM3.y - 1) / blockDimM3.y);
 
 		// 5. El bucle ahora es ultrarrápido: solo encola trabajo en la GPU
@@ -325,8 +336,8 @@ int ClasificacionSOMGPU()
 				dPesosLineales, dPatronActual, SOM.Alto, SOM.Ancho, SOM.Dimension, dDistancias);
 
 			// --- FASE M4: Kernel de Reducción ---
-			// Le pasamos dLabelsLineales y dEtiquetasSalida para que guarde el resultado final
-			KernelReduccion<<<1, 256>>>(dDistancias, totalNeuronas, dLabelsLineales, dEtiquetasSalida, np);
+			// Lanzamiento parametrizado para facilitar el testeo en el laboratorio
+			KernelReduccion<<<1, BLOCK_SIZE_M4>>>(dDistancias, totalNeuronas, dLabelsLineales, dEtiquetasSalida, np);
 		}
 
 		// Sincronizamos para asegurar que todos los kernels han terminado
