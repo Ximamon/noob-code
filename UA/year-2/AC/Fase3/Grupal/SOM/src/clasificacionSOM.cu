@@ -169,21 +169,23 @@ static void CopiarEtiquetasLineal(int* labelsLineales)
 /*--------------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
-/* Kernel M4 (Julián): Reducción en Árbol (Búsqueda paralela del mínimo)      */
+/* FASE 1: Reducción Local por Bloques                                        */
 /*----------------------------------------------------------------------------*/
-__global__ void KernelReduccion(const float* distancias, int totalNeuronas, const int* labelsLineales, int* etiquetasSalida, int np)
+__global__ void KernelReduccionFase1(const float* distancias, int totalNeuronas, float* minDistIntermedio, int* minIdxIntermedio)
 {
-	// Arrays en caché L1 parametrizados por la macro de microarquitectura
 	__shared__ float sDist[BLOCK_SIZE_M4];
 	__shared__ int sIndex[BLOCK_SIZE_M4];
 
 	int tid = threadIdx.x;
-	
-	float min_dist = 1e38f; // Empezamos con un valor altísimo (infinito)
+	// El hilo global ahora usa gridDim.x para el salto (cubrimos la gráfica entera)
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	int stride = blockDim.x * gridDim.x;
+
+	float min_dist = 1e38f;
 	int min_idx = -1;
 
-	// 1. Cada hilo busca el mínimo de los elementos que le tocan (Grid-Stride Loop)
-	for (int i = tid; i < totalNeuronas; i += blockDim.x)
+	// 1. Cada hilo busca el mínimo de los elementos que le tocan
+	for (; i < totalNeuronas; i += stride)
 	{
 		float d = distancias[i];
 		if (d < min_dist)
@@ -193,12 +195,11 @@ __global__ void KernelReduccion(const float* distancias, int totalNeuronas, cons
 		}
 	}
 
-	// 2. Guardamos el mínimo local de este hilo en la memoria compartida
 	sDist[tid] = min_dist;
 	sIndex[tid] = min_idx;
-	__syncthreads(); // Esperamos a que todos los hilos hayan escrito en shared
+	__syncthreads();
 
-	// 3. Reducción en árbol paralela (Tree Reduction)
+	// 2. Reducción en árbol (Torneo dentro del bloque)
 	for (int s = blockDim.x / 2; s > 0; s >>= 1)
 	{
 		if (tid < s)
@@ -209,14 +210,61 @@ __global__ void KernelReduccion(const float* distancias, int totalNeuronas, cons
 				sIndex[tid] = sIndex[tid + s];
 			}
 		}
-		__syncthreads(); // Sincronizamos en cada ronda del torneo
+		__syncthreads();
 	}
 
-	// 4. Fin del torneo: El hilo 0 tiene el mínimo absoluto
+	// 3. El hilo 0 de CADA BLOQUE escribe su ganador local en el array intermedio
 	if (tid == 0)
-		etiquetasSalida[np] = labelsLineales[sIndex[0]];
+	{
+		minDistIntermedio[blockIdx.x] = sDist[0];
+		minIdxIntermedio[blockIdx.x] = sIndex[0];
+	}
 }
 
+/*----------------------------------------------------------------------------*/
+/* Kernel M4 - FASE 2: Reducción Final del ganador absoluto                   */
+/*----------------------------------------------------------------------------*/
+__global__ void KernelReduccionFase2(const float* minDistIntermedio, const int* minIdxIntermedio, int numBloquesFase1, const int* labelsLineales, int* etiquetasSalida, int np)
+{
+	__shared__ float sDist[BLOCK_SIZE_M4];
+	__shared__ int sIndex[BLOCK_SIZE_M4];
+
+	int tid = threadIdx.x;
+	float min_dist = 1e38f;
+	int min_idx = -1;
+
+	// 1. Cargamos el resultado de los 64 bloques de la Fase 1
+	for (int i = tid; i < numBloquesFase1; i += blockDim.x)
+	{
+		float d = minDistIntermedio[i];
+		if (d < min_dist)
+		{
+			min_dist = d;
+			min_idx = minIdxIntermedio[i]; // ¡Ojo! Mapeamos al índice original de la neurona
+		}
+	}
+
+	sDist[tid] = min_dist;
+	sIndex[tid] = min_idx;
+	__syncthreads();
+
+	// 2. Torneo final
+	for (int s = blockDim.x / 2; s > 0; s >>= 1)
+	{
+		if (tid < s)
+		{
+			if (sDist[tid + s] < sDist[tid])
+			{
+				sDist[tid] = sDist[tid + s];
+				sIndex[tid] = sIndex[tid + s];
+			}
+		}
+		__syncthreads();
+	}
+
+	// 3. El hilo 0 tiene la neurona ganadora definitiva para el patrón np
+	if (tid == 0) etiquetasSalida[np] = labelsLineales[sIndex[0]];
+}
 /*----------------------------------------------------------------------------*/
 /*  FUNCION A PARALELIZAR  (versión secuencial-CPU)  				          */
 /*	Implementa la clasificación basada en SOM de un conjunto de patrones      */
@@ -273,6 +321,8 @@ int ClasificacionSOMGPU()
 	int* dLabelsLineales = NULL;  // NUEVO: Etiquetas del mapa en Device
 	float* dDistancias = NULL;
 	int* dEtiquetasSalida = NULL; // NUEVO: Array de resultados en Device
+	float* d_minDistIntermedio = NULL;
+	int* d_minIdxIntermedio = NULL;
 
 	fprintf(stderr, "Iniciando ClasificacionSOMGPU...\n");
 	if (Patrones.Dimension != SOM.Dimension) return ERRORCLASS;
@@ -286,6 +336,9 @@ int ClasificacionSOMGPU()
 	const size_t bytesTodosPatrones = (size_t)Patrones.Cantidad * (size_t)SOM.Dimension * sizeof(float);
 	const size_t bytesEtiquetasSalida = (size_t)Patrones.Cantidad * sizeof(int);
 	const size_t bytesDistancias = (size_t)totalNeuronas * sizeof(float);
+
+	const size_t bytesIntermedios = GRID_SIZE_M4 * sizeof(float);
+	const size_t bytesIdxIntermedios = GRID_SIZE_M4 * sizeof(int);
 
 	// 2. Reserva en Host
 	hPesosLineales = (float*)malloc(bytesPesos);
@@ -307,6 +360,8 @@ int ClasificacionSOMGPU()
 		if (cudaMalloc((void**)&dLabelsLineales, bytesLabels) != cudaSuccess) estado_final = ERRORCLASS;
 		if (cudaMalloc((void**)&dDistancias, bytesDistancias) != cudaSuccess) estado_final = ERRORCLASS;
 		if (cudaMalloc((void**)&dEtiquetasSalida, bytesEtiquetasSalida) != cudaSuccess) estado_final = ERRORCLASS;
+		if (cudaMalloc((void**)&d_minDistIntermedio, bytesIntermedios) != cudaSuccess) estado_final = ERRORCLASS;
+		if (cudaMalloc((void**)&d_minIdxIntermedio, bytesIdxIntermedios) != cudaSuccess) estado_final = ERRORCLASS;
 	}
 
 	if (estado_final == OKCLAS)
@@ -330,9 +385,13 @@ int ClasificacionSOMGPU()
 			KernelDistanciasVecindario<<<gridDimM3, blockDimM3, SOM.Dimension * sizeof(float)>>>(
 				dPesosLineales, dPatronActual, SOM.Alto, SOM.Ancho, SOM.Dimension, dDistancias, totalNeuronas);
 
-			// --- FASE M4: Kernel de Reducción ---
-			// Lanzamiento parametrizado para facilitar el testeo en el laboratorio
-			KernelReduccion<<<1, BLOCK_SIZE_M4>>>(dDistancias, totalNeuronas, dLabelsLineales, dEtiquetasSalida, np);
+			// FASE M4.1: Reducción Multibloque (Satura los SMs)
+			KernelReduccionFase1<<<GRID_SIZE_M4, BLOCK_SIZE_M4>>>(
+				dDistancias, totalNeuronas, d_minDistIntermedio, d_minIdxIntermedio);
+
+			// FASE M4.2: Colapso al resultado final (1 solo bloque rápido)
+			KernelReduccionFase2<<<1, BLOCK_SIZE_M4>>>(
+				d_minDistIntermedio, d_minIdxIntermedio, GRID_SIZE_M4, dLabelsLineales, dEtiquetasSalida, np);
 		}
 
 		// Sincronizamos para asegurar que todos los kernels han terminado
@@ -350,7 +409,8 @@ int ClasificacionSOMGPU()
 	if (dPesosLineales) cudaFree(dPesosLineales);
 	if (dLabelsLineales) cudaFree(dLabelsLineales);
 	if (dEtiquetasSalida) cudaFree(dEtiquetasSalida);
-
+	if (d_minDistIntermedio) cudaFree(d_minDistIntermedio);
+	if (d_minIdxIntermedio) cudaFree(d_minIdxIntermedio);
 	if (hTodosPatrones) free(hTodosPatrones);
 	if (hPesosLineales) free(hPesosLineales);
 	if (hLabelsLineales) free(hLabelsLineales);
