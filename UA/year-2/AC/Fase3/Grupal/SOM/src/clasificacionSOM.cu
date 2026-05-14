@@ -45,7 +45,8 @@
 // BLOCK_SIZE_M4: Define los hilos que participan en la Reducción en Árbol.
 // Debe ser potencia de 2 (128, 256, 512). Modificar este valor altera la 
 // ocupación (Occupancy) y la cantidad de Memoria Compartida reservada.
-#define BLOCK_SIZE_M4 1024
+#define BLOCK_SIZE_M4 256
+#define GRID_SIZE_M4 64
 
 
 #define ERROR_CHECK { cudaError_t err; if ((err = cudaGetLastError()) != cudaSuccess) { printf("CUDA error: %s, line %d\n", cudaGetErrorString(err), __LINE__);}}
