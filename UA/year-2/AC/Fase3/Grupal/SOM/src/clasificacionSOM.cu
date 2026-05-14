@@ -67,12 +67,33 @@ __host__ __device__ inline int IndicePesoRowMajor(int indiceNeurona, int dimensi
 	return indiceNeurona * dimension + componente;
 }
 
-__device__ float DistanciaEuclideaNeurona(const float* pesosSOM, const float* patron, int indiceNeurona, int dimension)
+__host__ __device__ inline int IndicePesosSoA(int indiceNeurona, int componente, int totalNeuronas)
+{
+	// Layout SoA (Structure of Arrays): [comp0(neuronas), comp1(neuronas), ...]
+	return componente * totalNeuronas + indiceNeurona;
+}
+
+static void CopiarSOMLinealSoA(float* pesosLineales)
+{
+	int totalNeuronas = SOM.Alto * SOM.Ancho;
+
+	for (int y = 0; y < SOM.Alto; y++) {
+		for (int x = 0; x < SOM.Ancho; x++) {
+			const int indiceNeurona = IndiceNeuronaRowMajor(y, x, SOM.Ancho);
+			for (int d = 0; d < SOM.Dimension; d++) {
+				// Usamos el nuevo mapeo SoA
+				pesosLineales[IndicePesosSoA(indiceNeurona, d, totalNeuronas)] = SOM.Neurona[y][x].pesos[d];
+			}
+		}
+	}
+}
+
+__device__ float DistanciaEuclideaNeurona(const float* pesosSOM, const float* patron, int indiceNeurona, int dimension, int totalNeuronas)
 {
 	float acumulado = 0.0f;
 	for (int d = 0; d < dimension; ++d)
 	{
-		const float diferencia = pesosSOM[IndicePesoRowMajor(indiceNeurona, dimension, d)] - patron[d];
+		const float diferencia = pesosSOM[IndicePesosSoA(indiceNeurona, d, totalNeuronas)] - patron[d];
 		acumulado += diferencia * diferencia;
 	}
 	return sqrtf(acumulado);
@@ -88,7 +109,8 @@ __global__ void KernelDistanciasVecindario(
 	int alto,
 	int ancho,
 	int dimension,
-	float* distancias)
+	float* distancias,
+	int totalNeuronas)
 {
 	// El patron se comparte a nivel bloque para evitar lecturas repetidas a global.
 	extern __shared__ float sPatron[];
@@ -109,45 +131,18 @@ __global__ void KernelDistanciasVecindario(
 	if (x >= ancho || y >= alto) return;
 
 	const int indiceNeurona = IndiceNeuronaRowMajor(y, x, ancho);
-	float sumaDistancias = DistanciaEuclideaNeurona(pesosSOM, sPatron, indiceNeurona, dimension);
+	float sumaDistancias = DistanciaEuclideaNeurona(pesosSOM, sPatron, indiceNeurona, dimension, totalNeuronas);
 
 	// Vecindario cruz acordado: arriba, abajo, izquierda, derecha si esta en rango.
-	if (y > 0)
-	{
-		sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y - 1, x, ancho), dimension);
-	}
-	if (y < alto - 1)
-	{
-		sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y + 1, x, ancho), dimension);
-	}
-	if (x > 0)
-	{
-		sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y, x - 1, ancho), dimension);
-	}
-	if (x < ancho - 1)
-	{
-		sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y, x + 1, ancho), dimension);
-	}
+	if (y > 0) sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y - 1, x, ancho), dimension, totalNeuronas);
+	if (y < alto - 1) sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y + 1, x, ancho), dimension, totalNeuronas);
+	if (x > 0) sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y, x - 1, ancho), dimension, totalNeuronas);
+	if (x < ancho - 1) sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y, x + 1, ancho), dimension, totalNeuronas);
 
 	// Contrato de salida M3: para el patron actual, una puntuacion por neurona.
 	distancias[indiceNeurona] = sumaDistancias;
 }
 
-static void CopiarSOMLineal(float* pesosLineales)
-{
-	// Convierte TSOM (doble puntero) a array row-major plano para GPU.
-	for (int y = 0; y < SOM.Alto; ++y)
-	{
-		for (int x = 0; x < SOM.Ancho; ++x)
-		{
-			const int indiceNeurona = IndiceNeuronaRowMajor(y, x, SOM.Ancho);
-			for (int d = 0; d < SOM.Dimension; ++d)
-			{
-				pesosLineales[IndicePesoRowMajor(indiceNeurona, SOM.Dimension, d)] = SOM.Neurona[y][x].pesos[d];
-			}
-		}
-	}
-}
 
 static void CopiarTodosPatronesLineales(float* todosPatronesLineales)
 {
@@ -302,7 +297,7 @@ int ClasificacionSOMGPU()
 	if (estado_final == OKCLAS)
 	{
 		// Copiamos TODOS los datos al formato lineal de golpe
-		CopiarSOMLineal(hPesosLineales);
+		CopiarSOMLinealSoA(hPesosLineales);
 		CopiarTodosPatronesLineales(hTodosPatrones); 
 		CopiarEtiquetasLineal(hLabelsLineales);
 
@@ -333,7 +328,7 @@ int ClasificacionSOMGPU()
 
 			// --- FASE M3: Kernel de Distancias ---
 			KernelDistanciasVecindario<<<gridDimM3, blockDimM3, SOM.Dimension * sizeof(float)>>>(
-				dPesosLineales, dPatronActual, SOM.Alto, SOM.Ancho, SOM.Dimension, dDistancias);
+				dPesosLineales, dPatronActual, SOM.Alto, SOM.Ancho, SOM.Dimension, dDistancias, totalNeuronas);
 
 			// --- FASE M4: Kernel de Reducción ---
 			// Lanzamiento parametrizado para facilitar el testeo en el laboratorio
@@ -664,7 +659,7 @@ int EscribirPatrones(int cantidad, int dimension,const char *fichero)
 	
 	FILE *fpin; 			/* Fichero */
 
-	int np;
+	// int np;				// FIX NUESTRO: np no se usa, lo eliminamos para evitar confusión
 	float pesos;
 
 	/* Apertura de Fichero */
