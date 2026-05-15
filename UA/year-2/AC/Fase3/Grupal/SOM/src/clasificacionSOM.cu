@@ -101,6 +101,28 @@ __device__ float DistanciaEuclideaNeurona(const float* pesosSOM, const float* pa
 }
 
 /*----------------------------------------------------------------------------*/
+/* Helper M4: Reducción Ninja a nivel de registros físicos (Warp Shuffle)     */
+/*----------------------------------------------------------------------------*/
+__device__ inline void warpReduceMin(float& local_min, int& local_idx) 
+{
+    // Hacemos log2(32) = 5 rondas de intercambio de registros
+    for (int offset = 16; offset > 0; offset /= 2) 
+    {
+        // __shfl_down_sync desplaza el registro 'offset' posiciones hacia abajo
+        // 0xffffffff significa que los 32 hilos del warp participan activamente
+        float vec_dist = __shfl_down_sync(0xffffffff, local_min, offset);
+        int vec_idx    = __shfl_down_sync(0xffffffff, local_idx, offset);
+        
+        // Cada hilo se queda con el mínimo entre su registro y el de su vecino
+        if (vec_dist < local_min) 
+        {
+            local_min = vec_dist;
+            local_idx = vec_idx;
+        }
+    }
+}
+
+/*----------------------------------------------------------------------------*/
 /* Kernel M3 (Ximo): distancia(neurona) + distancia(vecindario cruz valido)   */
 /* Se encarga de calcular las distancias de cada neurona al patron de entrada */
 /*----------------------------------------------------------------------------*/
@@ -227,45 +249,58 @@ __global__ void KernelReduccionFase1(const float* distancias, int totalNeuronas,
 /*----------------------------------------------------------------------------*/
 __global__ void KernelReduccionFase2(const float* minDistIntermedio, const int* minIdxIntermedio, int numBloquesFase1, const int* labelsLineales, int* etiquetasSalida, int np)
 {
-	__shared__ float sDist[BLOCK_SIZE_M4];
-	__shared__ int sIndex[BLOCK_SIZE_M4];
+    // ¡La memoria compartida se reduce drásticamente! Solo necesitamos espacio para 1 ganador por Warp
+    __shared__ float sWarpDist[32]; 
+    __shared__ int sWarpIndex[32];
 
-	int tid = threadIdx.x;
-	float min_dist = 1e38f;
-	int min_idx = -1;
+    int tid = threadIdx.x;
+    int laneId = tid % 32; // Qué hilo soy dentro de mi Warp (0 a 31)
+    int warpId = tid / 32; // A qué Warp pertenezco (0 a 7 si el bloque es de 256)
 
-	// 1. Cargamos el resultado de los 64 bloques de la Fase 1
-	for (int i = tid; i < numBloquesFase1; i += blockDim.x)
-	{
-		float d = minDistIntermedio[i];
-		if (d < min_dist)
-		{
-			min_dist = d;
-			min_idx = minIdxIntermedio[i]; // ¡Ojo! Mapeamos al índice original de la neurona
-		}
-	}
+    float min_dist = 1e38f;
+    int min_idx = -1;
 
-	sDist[tid] = min_dist;
-	sIndex[tid] = min_idx;
-	__syncthreads();
+    // 1. Cada hilo carga su dato desde la memoria global (Resultados de la Fase 1)
+    for (int i = tid; i < numBloquesFase1; i += blockDim.x)
+    {
+        float d = minDistIntermedio[i];
+        if (d < min_dist)
+        {
+            min_dist = d;
+            min_idx = minIdxIntermedio[i];
+        }
+    }
 
-	// 2. Torneo final
-	for (int s = blockDim.x / 2; s > 0; s >>= 1)
-	{
-		if (tid < s)
-		{
-			if (sDist[tid + s] < sDist[tid])
-			{
-				sDist[tid] = sDist[tid + s];
-				sIndex[tid] = sIndex[tid + s];
-			}
-		}
-		__syncthreads();
-	}
+    // 2. Torneo a nivel de registros dentro del Warp (Cero latencia de memoria)
+    warpReduceMin(min_dist, min_idx);
 
-	// 3. El hilo 0 tiene la neurona ganadora definitiva para el patrón np
-	if (tid == 0) etiquetasSalida[np] = labelsLineales[sIndex[0]];
+    // 3. El hilo 0 de cada Warp escribe SU campeón en la memoria compartida
+    if (laneId == 0)
+    {
+        sWarpDist[warpId] = min_dist;
+        sWarpIndex[warpId] = min_idx;
+    }
+    
+    // ---------------------------------------------------------
+    // LA ÚNICA BARRERA DE TODO EL KERNEL. Hemos pasado de 8 a 1.
+    __syncthreads(); 
+    // ---------------------------------------------------------
+
+    // 4. El Warp 0 se encarga de la final
+    if (warpId == 0)
+    {
+        // Los hilos del Warp 0 leen a los campeones. Si no hay campeón, leen infinito.
+        min_dist = (tid < (blockDim.x / 32)) ? sWarpDist[laneId] : 1e38f;
+        min_idx  = (tid < (blockDim.x / 32)) ? sWarpIndex[laneId] : -1;
+
+        // Último torneo en registros
+        warpReduceMin(min_dist, min_idx);
+
+        // 5. El hilo absoluto 0 escribe la sentencia
+        if (tid == 0) etiquetasSalida[np] = labelsLineales[min_idx];
+    }
 }
+
 /*----------------------------------------------------------------------------*/
 /*  FUNCION A PARALELIZAR  (versión secuencial-CPU)  				          */
 /*	Implementa la clasificación basada en SOM de un conjunto de patrones      */
