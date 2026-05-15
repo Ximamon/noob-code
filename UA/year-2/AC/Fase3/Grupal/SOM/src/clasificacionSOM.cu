@@ -426,7 +426,7 @@ int ClasificacionSOMGPU()
 				dDistancias, totalNeuronas, d_minDistIntermedio, d_minIdxIntermedio);
 
 			// FASE M4.2: Colapso al resultado final (1 solo bloque rápido)
-			KernelReduccionFase2<<<1, BLOCK_SIZE_M4>>>(
+			KernelReduccionFase2<<<GRID_SIZE_M4, BLOCK_SIZE_M4>>>(
 				d_minDistIntermedio, d_minIdxIntermedio, GRID_SIZE_M4, dLabelsLineales, dEtiquetasSalida, np);
 		}
 
