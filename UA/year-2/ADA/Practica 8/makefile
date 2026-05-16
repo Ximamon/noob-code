@@ -1,6 +1,6 @@
 # Julian Hinojosa Gil, 48795869N
 
-OPTS = -Wall -Wextra -O3 -std=c++0x
+OPTS = -Wall -Wextra -O0 -std=c++0x -g
 CC = g++
 
 all:  maze_bt
@@ -12,4 +12,4 @@ tar: maze_bt.cc makefile
 	tar cvfz 48795869N.tar.gz maze_bt.cc makefile
 
 clean: 
-	rm -rf maze_bt maze_bt.dSYM *~
+	rm -rf maze_bt maze_bt.dSYM *~ 48795869N.tar.gz
