@@ -6,11 +6,13 @@
 
 #include "tvectorcom.h"
 
+// Constructor 
 TVectorCom::TVectorCom() {
     this->tamano = 0;
     this->c = NULL;
 }
 
+// Constructor con tamaño
 TVectorCom::TVectorCom(int t) {
     if (t > 0) {
         this->tamano = t;
@@ -42,6 +44,7 @@ TVectorCom &TVectorCom::operator=(const TVectorCom &v) {
 
 // ------------------- Operadores (clase) -------------------
 
+// Sobrecarga del operador INDICE, devuelve referencia para permitir asignación
 TComplejo &TVectorCom::operator[](int i) {
     if (i >= 1 && i <= this->tamano) {
         return this->c[i-1];
@@ -51,6 +54,7 @@ TComplejo &TVectorCom::operator[](int i) {
     return error;
 }
 
+// Sobrecarga del operador INDICE para objetos constantes, devuelve una copia
 TComplejo TVectorCom::operator[](int i) const {
     if (i >= 1 && i <= this->tamano) {
         return this->c[i-1];
@@ -58,10 +62,12 @@ TComplejo TVectorCom::operator[](int i) const {
     return TComplejo();
 }
 
+// Sobrecarga del operador IGUALDAD, compara tamaños y elementos
 bool TVectorCom::operator==(const TVectorCom &v) const {
     if (this->tamano != v.tamano) {
         return false;
     }
+    // Compara cada elemento y devuelve false si encuentra una diferencia
     for (int i = 0; i < this->tamano; i++) {
         if (this->c[i] != v.c[i]) {
             return false;
@@ -118,13 +124,16 @@ void TVectorCom::MostrarComplejos(double d) const {
     std::cout << "]";
 }
 
+// Redimensiona el vector a un nuevo tamaño, copiando los elementos existentes
 bool TVectorCom::Redimensionar(int newSize) {
     if (newSize <= 0 || newSize == this->tamano) {
         return false;
     }
 
+    // Crea un nuevo array de TComplejo con el nuevo tamaño
     TComplejo *newC = new TComplejo[newSize];
 
+    // Copia los elementos existentes al nuevo array, hasta el nuevo tamaño o el tamaño actual, lo que sea menor
     if (newSize > this->tamano) {
         for (int i = 0; i < this->tamano; i++) {
             newC[i] = this->c[i];

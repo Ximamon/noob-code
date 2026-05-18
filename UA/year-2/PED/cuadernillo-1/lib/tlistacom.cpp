@@ -7,22 +7,26 @@
 
 // ------------------- TListaNodo -------------------
 
+// Constructor por defecto: inicializa los punteros de enlace a nullptr
 TListaNodo::TListaNodo() {
     this->anterior = nullptr;
     this->siguiente = nullptr;
 }
 
+// Constructor de copia: copia el elemento y las referencias a los vecinos
 TListaNodo::TListaNodo(const TListaNodo &otro) {
     this->e = otro.e;
     this->anterior = otro.anterior;
     this->siguiente = otro.siguiente;
 }
 
+// Destructor: solo limpia las referencias (no debe eliminar nodos vecinos)
 TListaNodo::~TListaNodo() {
     this->anterior = nullptr;
     this->siguiente = nullptr;
 }
 
+// Operador de asignación: copia el contenido y los punteros
 TListaNodo & TListaNodo::operator= (const TListaNodo &otro) {
     if (this != &otro) {
         this->e = otro.e;
@@ -35,18 +39,23 @@ TListaNodo & TListaNodo::operator= (const TListaNodo &otro) {
 // ------------------------------------------------------
 
 // ------------------- TListaPos -------------------
+
+// Objeto ligero que encapsula una posición (puntero a TListaNodo)
 TListaPos::TListaPos() {
     this->pos = nullptr;
 }
 
+// Copia la referencia a la posición (no clona nodos)
 TListaPos::TListaPos(const TListaPos &otra) {
     this->pos = otra.pos;
 }
 
+// Destructor: solo limpia la referencia
 TListaPos::~TListaPos() {
     this->pos = nullptr;
 }
 
+// Operador de asignación: actualizar la referencia si es distinto
 TListaPos &TListaPos::operator=(const TListaPos &otra) {
     if (this->pos != otra.pos) {
         this->pos = otra.pos;
@@ -54,6 +63,7 @@ TListaPos &TListaPos::operator=(const TListaPos &otra) {
     return *this;
 }
 
+// Comparadores: igualdad por puntero
 bool TListaPos::operator==(const TListaPos &otra) const {
     return this->pos == otra.pos;
 }
@@ -62,6 +72,7 @@ bool TListaPos::operator!=(const TListaPos &otra) const {
     return this->pos != otra.pos;
 }
 
+// Devuelve la posición anterior (si existe), o una posición vacía
 TListaPos TListaPos::Anterior() const {
     TListaPos anterior;
     if (this->pos != nullptr && this->pos->anterior != nullptr) {
@@ -70,6 +81,7 @@ TListaPos TListaPos::Anterior() const {
     return anterior;
 }
 
+// Devuelve la posición siguiente (si existe), o una posición vacía
 TListaPos TListaPos::Siguiente() const {
     TListaPos siguiente;
     if (this->pos != nullptr && this->pos->siguiente != nullptr) {
@@ -78,6 +90,7 @@ TListaPos TListaPos::Siguiente() const {
     return siguiente;
 }
 
+// Indica si la posición está vacía (nullptr)
 bool TListaPos::EsVacia() const {
     return this->pos == nullptr;
 }
@@ -86,15 +99,19 @@ bool TListaPos::EsVacia() const {
 
 // ------------------- TListaCom -------------------
 
+// Constructor por defecto: lista inicialmente vacía (sin nodos)
 TListaCom::TListaCom() {
     this->primero = nullptr;
     this->ultimo = nullptr;
 }
 
+// Constructor de copia: realiza una copia profunda de los nodos en orden
 TListaCom::TListaCom(const TListaCom & otra) {
+    // Inicializamos la lista vacía
     this->primero = nullptr;
     this->ultimo = nullptr;
 
+    // Recorremos la lista fuente y clonamos cada nodo al final de la nueva lista
     TListaNodo *nodo = otra.primero;
     while (nodo != nullptr) {
         TListaNodo *nodoNuevo = new TListaNodo();
@@ -112,6 +129,7 @@ TListaCom::TListaCom(const TListaCom & otra) {
     }
 }
 
+// Destructor: libera todos los nodos reservados
 TListaCom::~TListaCom() {
     TListaNodo *nodo = this->primero;
     while (nodo != nullptr) {
@@ -122,6 +140,7 @@ TListaCom::~TListaCom() {
     this->ultimo = nullptr;
 }
 
+// Operador de asignación: limpia la lista actual y copia la otra (deep copy)
 TListaCom &TListaCom::operator=(const TListaCom &otra) {
     if (this != &otra) {
         this->~TListaCom();
@@ -145,7 +164,7 @@ TListaCom &TListaCom::operator=(const TListaCom &otra) {
     return *this;
 }
 
-
+// Comparación: dos listas son iguales si tienen la misma secuencia de elementos
 bool TListaCom::operator==(const TListaCom &otra) const {
     TListaNodo *nodo1 = this->primero;
     TListaNodo *nodo2 = otra.primero;
@@ -164,6 +183,7 @@ bool TListaCom::operator!=(const TListaCom &otra) const {
     return !(*this == otra);
 }
 
+// Concatenación: devuelve una nueva lista con los elementos de ambas listas en orden
 TListaCom TListaCom::operator+(const TListaCom &otra) const {
     TListaCom res;
 
@@ -201,6 +221,7 @@ TListaCom TListaCom::operator+(const TListaCom &otra) const {
     return res;
 }
 
+// Resta de listas: elementos de la primera que no aparecen en la segunda
 TListaCom TListaCom::operator-(const TListaCom &otra) const {
     TListaCom res;
 
@@ -235,10 +256,12 @@ TListaCom TListaCom::operator-(const TListaCom &otra) const {
     return res;
 }
 
+// Comprueba si la lista está vacía
 bool TListaCom::EsVacia() const {
     return this->primero == nullptr;
 }
 
+// Inserta un elemento al principio de la lista. Devuelve false si falla la reserva.
 bool TListaCom::InsCabeza(const TComplejo &e) {
     TListaNodo *nodo = new(std::nothrow) TListaNodo();
 
@@ -259,7 +282,7 @@ bool TListaCom::InsCabeza(const TComplejo &e) {
     return true;
 }
 
-// Inserta el elemento a la izquierda de la posición indicada
+// Inserta a la izquierda de la posición indicada (antes de p). Requiere p válida.
 bool TListaCom::InsertarI(const TComplejo &e, const TListaPos &p) {
     // Hay que comprobar que el objeto TListaPos no es vacío
     if (p.pos == nullptr) {
@@ -291,7 +314,7 @@ bool TListaCom::InsertarI(const TComplejo &e, const TListaPos &p) {
     return true;
 }
 
-// Inserta el elemento a la derecha de la posición indicada
+// Inserta a la derecha de la posición indicada (después de p). Requiere p válida.
 bool TListaCom::InsertarD(const TComplejo &e, const TListaPos &p) {
     // Hay que comprobar que el objeto TListaPos no es vacío
     if (p.pos == nullptr) {
@@ -323,7 +346,7 @@ bool TListaCom::InsertarD(const TComplejo &e, const TListaPos &p) {
     return true;
 }
 
-// Busca y borra la primera ocurrencia del elemento
+// Busca y borra la primera ocurrencia del elemento. Mantiene enlaces correctamente.
 bool TListaCom::Borrar(const TComplejo &e) {
     TListaNodo *nodo = this->primero;
 
@@ -345,20 +368,20 @@ bool TListaCom::Borrar(const TComplejo &e) {
 
             // 3. Borramos el nodo de la memoria
             delete nodo;
-            return true; // Hemos borrado la primera ocurrencia [cite: 264, 315]
+            return true; // Hemos borrado la primera ocurrencia
         }
         nodo = nodo->siguiente;
     }
-    return false; // No existía en la lista [cite: 315]
+    return false; // No existía en la lista
 }
 
-// Busca y borra todas las ocurrencias del elemento
+// Busca y borra todas las ocurrencias del elemento. Devuelve true si borró al menos una.
 bool TListaCom::BorrarTodos(const TComplejo &e) {
-    bool borrado = false; // Bandera para saber si borramos al menos uno
+    bool borrado = false;
     TListaNodo *nodo = this->primero;
 
     while (nodo != nullptr) {
-        if (nodo->e == e) { // Si encontramos una ocurrencia
+        if (nodo->e == e) {
             TListaNodo *aBorrar = nodo;
             nodo = nodo->siguiente; // Avanzamos ANTES de borrar el nodo actual
 
@@ -381,15 +404,12 @@ bool TListaCom::BorrarTodos(const TComplejo &e) {
             nodo = nodo->siguiente;
         }
     }
-    return borrado; // Devuelve true si se pudo borrar al menos uno [cite: 265, 316]
+    return borrado; // Devuelve true si se pudo borrar al menos uno
 }
 
-// Borra el elemento que ocupa la posición indicada
+// Borra el nodo apuntado por la posición p y deja p vacía. Requiere p válida.
 bool TListaCom::Borrar(TListaPos &p) {
-    // Hay que comprobar que el objeto TListaPos no es vacío [cite: 320]
-    if (p.pos == nullptr) {
-        return false; // [cite: 318]
-    }
+    if (p.pos == nullptr) return false;
 
     TListaNodo *aBorrar = p.pos;
 
@@ -407,26 +427,24 @@ bool TListaCom::Borrar(TListaPos &p) {
 
     delete aBorrar;
 
-    // Una vez eliminado el elemento, la posición tiene que pasar a estar vacía [cite: 317]
+    // Una vez eliminado el elemento, la posición tiene que pasar a estar vacía
     p.pos = nullptr;
 
-    return true; // [cite: 318]
+    return true;
 }
 
-// Obtiene el elemento que ocupa la posición indicada
+// Devuelve el elemento en la posición p; si p es vacía, devuelve un TComplejo por defecto
 TComplejo TListaCom::Obtener(const TListaPos &p) {
-    // Si la posición es vacía, se devuelve un TComplejo creado con el constructor por defecto [cite: 321]
     if (p.pos == nullptr) {
         TComplejo vacio;
         return vacio;
     }
-    // Si no es vacía, devolvemos el elemento
     return p.pos->e;
 }
 
-// Devuelve true si el elemento está en la lista, false en caso contrario
+// Búsqueda lineal: devuelve true si el elemento está en la lista
 bool TListaCom::Buscar(const TComplejo &e) const {
-    // Se realiza una búsqueda lineal desde el primer elemento hasta el último [cite: 322]
+    // Se realiza una búsqueda lineal desde el primer elemento hasta el último
     TListaNodo *nodo = this->primero;
     while (nodo != nullptr) {
         if (nodo->e == e) {
@@ -437,7 +455,7 @@ bool TListaCom::Buscar(const TComplejo &e) const {
     return false; // Llegamos al final y no estaba
 }
 
-// Devuelve la longitud de la lista
+// Longitud: recorre la lista y cuenta nodos
 int TListaCom::Longitud() const {
     int contador = 0;
     TListaNodo *nodo = this->primero;
@@ -448,20 +466,21 @@ int TListaCom::Longitud() const {
     return contador;
 }
 
-// Devuelve la primera posición en la lista
+// Devuelve la primera posición (cabecera)
 TListaPos TListaCom::Primera() const {
     TListaPos p;
     p.pos = this->primero;
     return p;
 }
 
-// Devuelve la última posición en la lista
+// Devuelve la última posición (cola)
 TListaPos TListaCom::Ultima() const {
     TListaPos p;
     p.pos = this->ultimo;
     return p;
 }
 
+// Salida por flujo: imprime la lista entre llaves, elementos separados por espacio
 std::ostream & operator<<(std::ostream &os, const TListaCom &lista) {
     os << "{";
 

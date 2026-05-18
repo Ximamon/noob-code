@@ -14,8 +14,8 @@ class TComplejo {
     friend TComplejo operator* (double , const TComplejo&);
 public:
     TComplejo(double = 0, double = 0);        // CONSTRUCTOR (Sintetiza: Por defecto, Parte Real, y Parte Real + Imaginaria)
-    TComplejo (const TComplejo&);             //Constructor copia
-    ~TComplejo();                             //Destructor
+    TComplejo (const TComplejo&);             // Constructor copia
+    ~TComplejo();                             // Destructor
     TComplejo& operator= (const TComplejo&);  // Sobrecarga del operador asignación
 
     TComplejo operator+ (const TComplejo&) const;

@@ -42,7 +42,7 @@
 
 // #define VECTOR_ELEMENTS 30000000
 #define VECTOR_ELEMENTS 1000000
-#define COMPUTE_N_ELEMENTS_PER_THREAD 1
+#define COMPUTE_N_ELEMENTS_PER_THREAD 8
 
 // includes, project
 #include <cuda.h>
@@ -65,19 +65,20 @@ double getTime();
 
 __global__ void vecadd(float* C, const float* A, const float* B)
 {
-    // ===================================================================
-    // Calcula el �ndice para acceder a cada elemento
-    // Calcula la suma de las posiciones correspondientes y almacena el resultado
-    // ===================================================================
+    // 1. Calculamos el índice global de este hilo
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
-    const int i = (threadIdx.x + blockIdx.x * blockDim.x) * COMPUTE_N_ELEMENTS_PER_THREAD;
-	if( i < VECTOR_ELEMENTS )
-	{
-		for(int j=0; j < COMPUTE_N_ELEMENTS_PER_THREAD; j++)
-		{
-			C[i+j] = A[i+j] + B[i+j];
-		}
-	}
+    // 2. Calculamos el tamaño total de la rejilla (la zancada o "stride")
+    // Esto es el total de hilos que hemos lanzado a la GPU
+    int stride = blockDim.x * gridDim.x;
+
+    // 3. Bucle Grid-Stride
+    // El hilo procesa su elemento, y luego salta exactamente el tamaño
+    // total de la rejilla para procesar el siguiente, manteniendo la coalescencia.
+    for (int i = tid; i < VECTOR_ELEMENTS; i += stride)
+    {
+        C[i] = A[i] + B[i];
+    }
 }
 
 #define ERROR_CHECK { cudaError_t err; \
@@ -95,9 +96,9 @@ int
 main(int argc, char** argv)
 {
     runTest(argc, argv);
-    #ifdef _WIN32
-        getchar();
-    #endif
+    // #ifdef _WIN32
+    //     getchar();
+    // #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -168,8 +169,12 @@ runTest(int argc, char** argv)
     // ===================================================================
     // Calcula las dimensiones del grid e invoca el kernel
     // ===================================================================
+    // Si queremos que cada hilo haga unas 8 sumas, necesitamos 8 veces menos hilos
+    int hilos_totales_necesarios = VECTOR_ELEMENTS / 8;
+
     dim3 block(512);
-    dim3 grid( (VECTOR_ELEMENTS + (block.x*COMPUTE_N_ELEMENTS_PER_THREAD-1) )/ (block.x*COMPUTE_N_ELEMENTS_PER_THREAD) );
+    // Calculamos los bloques necesarios para esos hilos reducidos
+    dim3 grid((hilos_totales_necesarios + block.x - 1) / block.x);
 
 	#ifdef DEBUG_
 		printf("  # of threads in a block: %d\n", block.x);
@@ -179,7 +184,11 @@ runTest(int argc, char** argv)
 
 	gpu_start_time = getTime();
 
-    vecadd<<<grid,block>>>(C_d,A_d,B_d);
+    // Medida de seguridad básica por si redondea a 0
+    if (grid.x == 0) grid.x = 1;
+
+    // Invocamos el kernel con la rejilla reducida
+    vecadd <<<grid, block >>> (C_d, A_d, B_d);
 
     cudaDeviceSynchronize();
     //cudaThreadSynchronize();

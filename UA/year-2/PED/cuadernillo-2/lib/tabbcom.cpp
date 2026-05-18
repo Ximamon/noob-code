@@ -9,6 +9,7 @@
 // ------------------- Forma canonica -------------------
 // ---------------------  TNodoABB  ---------------------
 
+// Constructor por defecto, inicializa el item con un TComplejo por defecto y los subárboles izquierdo y derecho como vacíos
 TNodoABB::TNodoABB() {
     this->item = TComplejo();
     this->iz = TABBCom();
@@ -38,6 +39,8 @@ TNodoABB &TNodoABB::operator=(const TNodoABB &other) {
 
 // ------------------- Forma canonica -------------------
 // ---------------------  TABBCom  ----------------------
+
+// Constructor por defecto, inicializa el nodo como un puntero nulo (árbol vacío)
 TABBCom::TABBCom() {
     this->nodo = nullptr;
 }
@@ -104,18 +107,24 @@ bool TABBCom::EsMayor(const TComplejo &c1, const TComplejo &c2) const {
     return c1.Im() > c2.Im();
 }
 
+// Método de búsqueda: Devuelve true si el complejo c se encuentra en el árbol, false en caso contrario
 bool TABBCom::Buscar(const TComplejo &c) const {
     if (EsVacio()) return false;
 
+    // Si el complejo es igual al del nodo actual, lo hemos encontrado
     if (c == this->nodo->item)
         return true;
+    // Si es menor, buscamos en el subárbol izquierdo
     else if (EsMenor(c, this->nodo->item))
         return this->nodo->iz.Buscar(c);
+    // Si es mayor, buscamos en el subárbol derecho
     else 
         return this->nodo->de.Buscar(c);
 }
 
+// Insértalo en el árbol. Devuelve true si se ha insertado correctamente, false si el complejo ya existía en el árbol
 bool TABBCom::Insertar(const TComplejo &c) {
+    // Si el árbol está vacío, creamos un nuevo nodo con el complejo c y lo asignamos a nodo
     if (EsVacio()) {
         this->nodo = new TNodoABB();
         this->nodo->item = c;
@@ -124,12 +133,15 @@ bool TABBCom::Insertar(const TComplejo &c) {
 
     if (c == this->nodo->item)
         return false;
+    // Si el complejo es menor que el del nodo actual, lo insertamos en el subárbol izquierdo
     else if (EsMenor(c, this->nodo->item))
         return this->nodo->iz.Insertar(c);
+    // Si no, lo insertamos en el subárbol derecho
     else
         return this->nodo->de.Insertar(c);
 }
 
+// Borra el complejo c del árbol. Devuelve true si se ha borrado correctamente, false si el complejo no existía en el árbol
 bool TABBCom::Borrar(const TComplejo &c) {
     if (EsVacio()) return false;
     
@@ -138,6 +150,7 @@ bool TABBCom::Borrar(const TComplejo &c) {
         return nodo->iz.Borrar(c);
     } else if (EsMayor(c, this->nodo->item)) {
         return nodo->de.Borrar(c);
+    // Si el complejo es igual al del nodo actual, lo hemos encontrado y debemos borrarlo
     } else {
         
         // Caso 1: Es un nodo hoja (sin hijos)
@@ -178,6 +191,7 @@ bool TABBCom::Borrar(const TComplejo &c) {
     }
 }
 
+// Dos árboles son iguales si sus recorridos inorden son iguales (porque el orden de los elementos en el recorrido inorden es único para cada árbol)
 bool TABBCom::operator==(const TABBCom &otro) {
     return this->Inorden() == otro.Inorden();
 }
@@ -185,15 +199,19 @@ bool TABBCom::operator==(const TABBCom &otro) {
 // ------------------------------------------------------
 
 // ----------------- Metodos de consulta ----------------
+
+// Devuelve el complejo almacenado en la raíz del árbol. Si el árbol está vacío, devuelve un complejo por defecto (0 + 0i)
 TComplejo TABBCom::Raiz() const {
     if (EsVacio()) return TComplejo();
 
     return this->nodo->item;
 }
 
+// Devuelve la altura del árbol. La altura de un árbol vacío es 0, la altura de un árbol con solo un nodo es 1, etc
 int TABBCom::Altura() const {
     if (EsVacio()) return 0;
 
+    // La altura de un nodo es 1 + la altura del subárbol más alto entre el izquierdo y el derecho
     int alturaIzquierda = this->nodo->iz.Altura();
     int alturaDerecha = this->nodo->de.Altura();
 
@@ -203,12 +221,15 @@ int TABBCom::Altura() const {
         return 1 + alturaDerecha;
 }
 
+// Devuelve el número total de nodos en el árbol. Un árbol vacío tiene 0 nodos
 int TABBCom::Nodos() const {
     if (EsVacio()) return 0;
 
     return 1 + this->nodo->iz.Nodos() + this->nodo->de.Nodos();
 }
 
+// Devuelve el número de nodos hoja en el árbol
+// Un nodo hoja es aquel que no tiene hijos (es decir, ambos subárboles izquierdo y derecho son vacíos)
 int TABBCom::NodosHoja() const {
     if (EsVacio()) return 0;
 
@@ -220,6 +241,9 @@ int TABBCom::NodosHoja() const {
 // ------------------------------------------------------
 
 // --------------------- Recorridos ---------------------
+
+// Método auxiliar privado para el recorrido inorden
+// Rellena el vector v con los elementos del árbol en orden, utilizando pos como índice de inserción
 void TABBCom::InordenAux(TVectorCom &v, int &pos) const {
     if (!EsVacio()) {
         this->nodo->iz.InordenAux(v, pos);
@@ -231,6 +255,7 @@ void TABBCom::InordenAux(TVectorCom &v, int &pos) const {
     }
 } 
 
+// El recorrido inorden visita primero el subárbol izquierdo, luego el nodo actual, y finalmente el subárbol derecho
 TVectorCom TABBCom::Inorden() const {
     int pos = 1;
     TVectorCom v(Nodos());
@@ -238,6 +263,7 @@ TVectorCom TABBCom::Inorden() const {
     return v;
 }
 
+// Método auxiliar privado para el recorrido preorden
 void TABBCom::PreordenAux(TVectorCom &v, int &pos) const {
     if (!EsVacio()) {
         v[pos] = nodo->item;
@@ -248,6 +274,7 @@ void TABBCom::PreordenAux(TVectorCom &v, int &pos) const {
     }
 }
 
+// El recorrido preorden visita primero el nodo actual, luego el subárbol izquierdo, y finalmente el subárbol derecho
 TVectorCom TABBCom::Preorden() const {
     int pos = 1;
     TVectorCom v(Nodos());
@@ -255,7 +282,7 @@ TVectorCom TABBCom::Preorden() const {
     return v;
 }
 
-
+// Método auxiliar privado para el recorrido postorden
 void TABBCom::PostordenAux(TVectorCom &v, int &pos) const {
     if (!EsVacio()) {
         this->nodo->iz.PostordenAux(v, pos);
@@ -266,6 +293,7 @@ void TABBCom::PostordenAux(TVectorCom &v, int &pos) const {
     }
 }
 
+// El recorrido postorden visita primero el subárbol izquierdo, luego el subárbol derecho, y finalmente el nodo actual
 TVectorCom TABBCom::Postorden() const {
     int pos = 1;
     TVectorCom v(Nodos());
@@ -273,11 +301,13 @@ TVectorCom TABBCom::Postorden() const {
     return v;
 }
 
+// El recorrido por niveles visita los nodos del árbol nivel por nivel, de izquierda a derecha
 TVectorCom TABBCom::Niveles() const {
     TVectorCom v(Nodos());
 
     if (EsVacio()) return v;
 
+    // Utilizamos una cola para realizar el recorrido por niveles (BFS)
     std::queue<const TABBCom *> cola;
     int pos = 1;
 

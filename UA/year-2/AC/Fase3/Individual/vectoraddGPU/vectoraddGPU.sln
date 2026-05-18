@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.37111.16 d17.14
+VisualStudioVersion = 17.14.36429.23 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vectoraddGPU", "vectoraddGPU.vcxproj", "{B7A6A20A-6284-10C1-5932-626E4FBFCA43}"
 EndProject
@@ -20,6 +20,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {560BE934-CC5F-4002-A212-B8D95C669F5A}
+		SolutionGuid = {89F154C2-30D4-4549-B230-8F366E35887F}
 	EndGlobalSection
 EndGlobal
