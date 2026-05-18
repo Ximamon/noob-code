@@ -126,22 +126,24 @@ __device__ inline void warpReduceMin(float& local_min, int& local_idx)
 /* Kernel M3 (Ximo): distancia(neurona) + distancia(vecindario cruz valido)   */
 /* Se encarga de calcular las distancias de cada neurona al patron de entrada */
 /*----------------------------------------------------------------------------*/
-__global__ void KernelDistanciasVecindario(
+/*----------------------------------------------------------------------------*/
+/* Kernel M3.1: Cálculo Base (Cero redundancia matemática)                    */
+/*----------------------------------------------------------------------------*/
+__global__ void KernelDistanciaBase(
 	const float* pesosSOM,
 	const float* patron,
 	int alto,
 	int ancho,
 	int dimension,
-	float* distancias,
+	float* distanciasBase,
 	int totalNeuronas)
 {
-	// El patron se comparte a nivel bloque para evitar lecturas repetidas a global.
 	extern __shared__ float sPatron[];
 
 	const int hiloLineal = threadIdx.y * blockDim.x + threadIdx.x;
 	const int hilosBloque = blockDim.x * blockDim.y;
 
-	// Carga cooperativa del patron: cada hilo copia componentes separadas por stride.
+	// Carga cooperativa del patron
 	for (int d = hiloLineal; d < dimension; d += hilosBloque)
 	{
 		sPatron[d] = patron[d];
@@ -153,19 +155,39 @@ __global__ void KernelDistanciasVecindario(
 
 	if (x >= ancho || y >= alto) return;
 
+	// ÚNICO CÁLCULO MATEMÁTICO: Solo la distancia a mi propia neurona
 	const int indiceNeurona = IndiceNeuronaRowMajor(y, x, ancho);
-	float sumaDistancias = DistanciaEuclideaNeurona(pesosSOM, sPatron, indiceNeurona, dimension, totalNeuronas);
-
-	// Vecindario cruz acordado: arriba, abajo, izquierda, derecha si esta en rango.
-	if (y > 0) sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y - 1, x, ancho), dimension, totalNeuronas);
-	if (y < alto - 1) sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y + 1, x, ancho), dimension, totalNeuronas);
-	if (x > 0) sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y, x - 1, ancho), dimension, totalNeuronas);
-	if (x < ancho - 1) sumaDistancias += DistanciaEuclideaNeurona(pesosSOM, sPatron, IndiceNeuronaRowMajor(y, x + 1, ancho), dimension, totalNeuronas);
-
-	// Contrato de salida M3: para el patron actual, una puntuacion por neurona.
-	distancias[indiceNeurona] = sumaDistancias;
+	distanciasBase[indiceNeurona] = DistanciaEuclideaNeurona(pesosSOM, sPatron, indiceNeurona, dimension, totalNeuronas);
 }
 
+/*----------------------------------------------------------------------------*/
+/* Kernel M3.2: Patrón Stencil (Suma del vecindario en cruz)                  */
+/*----------------------------------------------------------------------------*/
+__global__ void KernelSumaVecindario(
+	const float* distanciasBase, // Recibe el array ya calculado por el M3.1
+	int alto,
+	int ancho,
+	float* distanciasFinales)
+{
+	const int x = blockIdx.x * blockDim.x + threadIdx.x;
+	const int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+	if (x >= ancho || y >= alto) return;
+
+	const int indiceNeurona = IndiceNeuronaRowMajor(y, x, ancho);
+	
+	// Leemos nuestra propia distancia ya calculada
+	float sumaDistancias = distanciasBase[indiceNeurona];
+
+	// Sumamos las distancias precalculadas de los vecinos (Lectura directa de VRAM)
+	if (y > 0) sumaDistancias += distanciasBase[IndiceNeuronaRowMajor(y - 1, x, ancho)];
+	if (y < alto - 1) sumaDistancias += distanciasBase[IndiceNeuronaRowMajor(y + 1, x, ancho)];
+	if (x > 0) sumaDistancias += distanciasBase[IndiceNeuronaRowMajor(y, x - 1, ancho)];
+	if (x < ancho - 1) sumaDistancias += distanciasBase[IndiceNeuronaRowMajor(y, x + 1, ancho)];
+
+	// Contrato de salida: puntuación total por neurona
+	distanciasFinales[indiceNeurona] = sumaDistancias;
+}
 
 static void CopiarTodosPatronesLineales(float* todosPatronesLineales)
 {
@@ -349,14 +371,15 @@ int ClasificacionSOMGPU()
 
 	// 1. Declaración de punteros
 	float* hPesosLineales = NULL;
-	float* hTodosPatrones = NULL; // NUEVO: Todos los patrones
+	float* hTodosPatrones = NULL; // Todos los patrones
 	int* hLabelsLineales = NULL; 
 
 	float* dPesosLineales = NULL;
-	float* dTodosPatrones = NULL; // NUEVO: Todos los patrones en Device
-	int* dLabelsLineales = NULL;  // NUEVO: Etiquetas del mapa en Device
+	float* dTodosPatrones = NULL; // Todos los patrones en Device
+	int* dLabelsLineales = NULL;  // Etiquetas del mapa en Device
+	float* d_DistanciasBase = NULL; // Array temporal para el patrón Stencil
 	float* dDistancias = NULL;
-	int* dEtiquetasSalida = NULL; // NUEVO: Array de resultados en Device
+	int* dEtiquetasSalida = NULL; // Array de resultados en Device
 	float* d_minDistIntermedio = NULL;
 	int* d_minIdxIntermedio = NULL;
 
@@ -395,6 +418,7 @@ int ClasificacionSOMGPU()
 		if (cudaMalloc((void**)&dTodosPatrones, bytesTodosPatrones) != cudaSuccess) estado_final = ERRORCLASS;
 		if (cudaMalloc((void**)&dLabelsLineales, bytesLabels) != cudaSuccess) estado_final = ERRORCLASS;
 		if (cudaMalloc((void**)&dDistancias, bytesDistancias) != cudaSuccess) estado_final = ERRORCLASS;
+		if (cudaMalloc((void**)&d_DistanciasBase, bytesDistancias) != cudaSuccess) estado_final = ERRORCLASS;
 		if (cudaMalloc((void**)&dEtiquetasSalida, bytesEtiquetasSalida) != cudaSuccess) estado_final = ERRORCLASS;
 		if (cudaMalloc((void**)&d_minDistIntermedio, bytesIntermedios) != cudaSuccess) estado_final = ERRORCLASS;
 		if (cudaMalloc((void**)&d_minIdxIntermedio, bytesIdxIntermedios) != cudaSuccess) estado_final = ERRORCLASS;
@@ -417,9 +441,15 @@ int ClasificacionSOMGPU()
 			// Puntero aritmético para decirle al kernel dónde empieza el patrón 'np'
 			float* dPatronActual = &dTodosPatrones[np * SOM.Dimension];
 
-			// --- FASE M3: Kernel de Distancias ---
-			KernelDistanciasVecindario<<<gridDimM3, blockDimM3, SOM.Dimension * sizeof(float)>>>(
-				dPesosLineales, dPatronActual, SOM.Alto, SOM.Ancho, SOM.Dimension, dDistancias, totalNeuronas);
+			// --- FASE M3.1: Cálculo Base (ALU Bound) ---
+			// Aquí sí pasamos la Memoria Compartida para el patrón
+			KernelDistanciaBase<<<gridDimM3, blockDimM3, SOM.Dimension * sizeof(float)>>>(
+				dPesosLineales, dPatronActual, SOM.Alto, SOM.Ancho, SOM.Dimension, d_DistanciasBase, totalNeuronas);
+
+			// --- FASE M3.2: Stencil (Memory Bound ultrarrápido) ---
+			// No necesita memoria compartida
+			KernelSumaVecindario<<<gridDimM3, blockDimM3>>>(
+				d_DistanciasBase, SOM.Alto, SOM.Ancho, dDistancias);
 
 			// FASE M4.1: Reducción Multibloque (Satura los SMs)
 			KernelReduccionFase1<<<GRID_SIZE_M4, BLOCK_SIZE_M4>>>(
@@ -441,6 +471,7 @@ int ClasificacionSOMGPU()
 
 	// 7. Limpieza de memoria
 	if (dDistancias) cudaFree(dDistancias);
+	if (d_DistanciasBase) cudaFree(d_DistanciasBase);
 	if (dTodosPatrones) cudaFree(dTodosPatrones);
 	if (dPesosLineales) cudaFree(dPesosLineales);
 	if (dLabelsLineales) cudaFree(dLabelsLineales);
