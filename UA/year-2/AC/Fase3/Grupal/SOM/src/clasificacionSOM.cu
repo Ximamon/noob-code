@@ -92,6 +92,7 @@ static void CopiarSOMLinealSoA(float* pesosLineales)
 __device__ float DistanciaEuclideaNeurona(const float* pesosSOM, const float* patron, int indiceNeurona, int dimension, int totalNeuronas)
 {
 	float acumulado = 0.0f;
+	#pragma unroll 4
 	for (int d = 0; d < dimension; ++d)
 	{
 		const float diferencia = pesosSOM[IndicePesosSoA(indiceNeurona, d, totalNeuronas)] - patron[d];
@@ -138,26 +139,15 @@ __global__ void KernelDistanciaBase(
 	float* distanciasBase,
 	int totalNeuronas)
 {
-	extern __shared__ float sPatron[];
-
-	const int hiloLineal = threadIdx.y * blockDim.x + threadIdx.x;
-	const int hilosBloque = blockDim.x * blockDim.y;
-
-	// Carga cooperativa del patron
-	for (int d = hiloLineal; d < dimension; d += hilosBloque)
-	{
-		sPatron[d] = patron[d];
-	}
-	__syncthreads();
-
 	const int x = blockIdx.x * blockDim.x + threadIdx.x;
 	const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
 	if (x >= ancho || y >= alto) return;
 
-	// ÚNICO CÁLCULO MATEMÁTICO: Solo la distancia a mi propia neurona
 	const int indiceNeurona = IndiceNeuronaRowMajor(y, x, ancho);
-	distanciasBase[indiceNeurona] = DistanciaEuclideaNeurona(pesosSOM, sPatron, indiceNeurona, dimension, totalNeuronas);
+
+	// Pasamos 'patron' directo en lugar de 'sPatron'
+	distanciasBase[indiceNeurona] = DistanciaEuclideaNeurona(pesosSOM, patron, indiceNeurona, dimension, totalNeuronas);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -442,8 +432,7 @@ int ClasificacionSOMGPU()
 			float* dPatronActual = &dTodosPatrones[np * SOM.Dimension];
 
 			// --- FASE M3.1: Cálculo Base (ALU Bound) ---
-			// Aquí sí pasamos la Memoria Compartida para el patrón
-			KernelDistanciaBase<<<gridDimM3, blockDimM3, SOM.Dimension * sizeof(float)>>>(
+			KernelDistanciaBase << <gridDimM3, blockDimM3 >> > (
 				dPesosLineales, dPatronActual, SOM.Alto, SOM.Ancho, SOM.Dimension, d_DistanciasBase, totalNeuronas);
 
 			// --- FASE M3.2: Stencil (Memory Bound ultrarrápido) ---
@@ -456,7 +445,7 @@ int ClasificacionSOMGPU()
 				dDistancias, totalNeuronas, d_minDistIntermedio, d_minIdxIntermedio);
 
 			// FASE M4.2: Colapso al resultado final (1 solo bloque rápido)
-			KernelReduccionFase2<<<GRID_SIZE_M4, BLOCK_SIZE_M4>>>(
+			KernelReduccionFase2<<<1, BLOCK_SIZE_M4>>>(
 				d_minDistIntermedio, d_minIdxIntermedio, GRID_SIZE_M4, dLabelsLineales, dEtiquetasSalida, np);
 		}
 
